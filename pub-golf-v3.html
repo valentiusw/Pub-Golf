@@ -95,7 +95,6 @@
         #rules-fab:hover {
             background: rgba(240, 180, 41, 0.32);
             transform: scale(1.08);
-            box-shadow: 0 4px 20px rgba(240, 180, 41, 0.25);
         }
 
         #rules-overlay {
@@ -187,7 +186,7 @@
             font-size: clamp(56px, 12vw, 96px);
             letter-spacing: 4px;
             color: var(--gold);
-            text-shadow: 0 0 16px rgba(240, 180, 41, 0.18), 3px 3px 0 rgba(0, 0, 0, 0.3);
+            text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
             line-height: 1;
         }
 
@@ -285,7 +284,6 @@
         select:focus,
         textarea:focus {
             border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(240, 180, 41, 0.15);
         }
 
         input::placeholder {
@@ -324,7 +322,6 @@
         .btn-primary:hover {
             background: var(--gold-light);
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(240, 180, 41, 0.35);
         }
 
         .btn-secondary {
@@ -399,6 +396,83 @@
             background: rgba(180, 130, 30, 0.4) !important;
             border-color: rgba(200, 155, 40, 0.65) !important;
             opacity: 1 !important;
+        }
+
+        /* PAR BUBBLES */
+        .par-bubble-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .par-bubble {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(250, 246, 238, 0.1);
+            border: 1px solid rgba(250, 246, 238, 0.2);
+            color: var(--cream);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .par-bubble-active {
+            background: var(--gold);
+            color: var(--brown);
+            border-color: var(--gold);
+        }
+
+        .par-bubble:hover:not(.par-bubble-active) {
+            background: rgba(250, 246, 238, 0.18);
+        }
+
+        /* HAZARD TOGGLES IN BODY */
+        .hazard-toggle-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .hazard-btn {
+            flex: 1;
+            padding: 10px 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(250, 246, 238, 0.15);
+            background: rgba(250, 246, 238, 0.06);
+            color: var(--cream);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .hazard-btn:hover {
+            background: rgba(250, 246, 238, 0.12);
+        }
+
+        /* GAME CODE BAR */
+        #game-code-bar {
+            position: fixed;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: rgba(250, 246, 238, 0.3);
+            pointer-events: none;
+            z-index: 9;
+            display: none;
         }
 
         /* HOLE ALERTS */
@@ -1505,9 +1579,11 @@
                 </div>
                 <label>Add Team Members</label>
                 <div class="member-add-row" style="margin-top:8px;">
-                    <input type="text" id="create-member-name" placeholder="Member name" maxlength="24">
+                    <input type="text" id="create-member-name" placeholder="Member name" maxlength="24"
+                        onkeydown="if(event.key==='Enter') addMember('create')">
                     <input type="number" id="create-member-hcp" placeholder="HCP" min="0" max="20"
-                        style="flex:0 0 72px; min-width:60px; text-align:center;" title="Handicap">
+                        style="flex:0 0 72px; min-width:60px; text-align:center;" title="Handicap"
+                        onkeydown="if(event.key==='Enter') addMember('create')">
                     <button class="btn btn-secondary btn-sm" onclick="addMember('create')">+ Add</button>
                 </div>
                 <div style="font-size:11px; color:rgba(250,246,238,0.35); margin-top:5px;">HCP = handicap (extra sips
@@ -1517,7 +1593,7 @@
             </div>
         </div>
 
-        <!-- JOIN -->
+        <!-- JOIN (step 1: code entry) -->
         <div id="screen-join" class="screen">
             <div class="back-btn" onclick="showScreen('screen-home')">← Back</div>
             <div class="card">
@@ -1525,19 +1601,29 @@
                 <div class="form-group">
                     <label>Lobby Code</label>
                     <input type="text" id="join-code" placeholder="e.g. PG42" maxlength="6"
-                        style="letter-spacing:6px; font-family:'DM Mono',monospace; font-size:22px; text-transform:uppercase;">
+                        style="letter-spacing:6px; font-family:'DM Mono',monospace; font-size:22px; text-transform:uppercase;"
+                        onkeydown="if(event.key==='Enter') proceedToTeamDetails()">
                 </div>
-                <div class="divider"></div>
-                <div class="card-title" style="font-size:18px; margin-bottom:14px;">👥 Your Team</div>
+                <button class="btn btn-primary mt-12" onclick="proceedToTeamDetails()">Next →</button>
+            </div>
+        </div>
+
+        <!-- JOIN (step 2: team details) -->
+        <div id="screen-join-team" class="screen">
+            <div class="back-btn" onclick="showScreen('screen-join')">← Back</div>
+            <div class="card">
+                <div class="card-title">👥 Your Team</div>
                 <div class="form-group">
                     <label>Team Name</label>
                     <input type="text" id="join-team-name" placeholder="e.g. The Gulpers" maxlength="30">
                 </div>
                 <label>Add Team Members</label>
                 <div class="member-add-row" style="margin-top:8px;">
-                    <input type="text" id="join-member-name" placeholder="Member name" maxlength="24">
+                    <input type="text" id="join-member-name" placeholder="Member name" maxlength="24"
+                        onkeydown="if(event.key==='Enter') addMember('join')">
                     <input type="number" id="join-member-hcp" placeholder="HCP" min="0" max="20"
-                        style="flex:0 0 72px; min-width:60px; text-align:center;">
+                        style="flex:0 0 72px; min-width:60px; text-align:center;"
+                        onkeydown="if(event.key==='Enter') addMember('join')">
                     <button class="btn btn-secondary btn-sm" onclick="addMember('join')">+ Add</button>
                 </div>
                 <div style="font-size:11px; color:rgba(250,246,238,0.35); margin-top:5px;">HCP = handicap (extra sips
@@ -1572,9 +1658,10 @@
                 <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Define penalty types before the game
                     starts. Locked once the game begins.</p>
                 <div class="input-row" style="margin-bottom:10px;">
-                    <input type="text" id="org-pen-name" placeholder="Penalty name (e.g. Vomit)" maxlength="40">
+                    <input type="text" id="org-pen-name" placeholder="Penalty name (e.g. Vomit)" maxlength="40"
+                        onkeydown="if(event.key==='Enter') addPenaltyDefLobby()">
                     <input type="number" id="org-pen-strokes" placeholder="+sips" min="1" max="20" class="narrow"
-                        style="flex:0 0 90px;">
+                        style="flex:0 0 90px;" onkeydown="if(event.key==='Enter') addPenaltyDefLobby()">
                     <button class="btn btn-danger btn-sm" onclick="addPenaltyDefLobby()" style="white-space:nowrap;">+
                         Add</button>
                 </div>
@@ -1608,6 +1695,7 @@
                 <button class="tab" id="tab-leaderboard" onclick="switchTab('leaderboard')">🏆 Scores</button>
                 <button class="tab" id="tab-course" onclick="switchTab('course')">📋 Course</button>
                 <button class="tab" id="tab-penalties" onclick="switchTab('penalties')">⚡ Penalties</button>
+                <button class="tab" id="tab-teams" onclick="switchTab('teams')" style="display:none;">👥 Teams</button>
             </div>
             <div id="game-tab-score">
                 <div class="hole-nav">
@@ -1655,6 +1743,14 @@
                     <div id="penalty-log-list"></div>
                 </div>
             </div>
+            <div id="game-tab-teams" style="display:none;">
+                <div class="card">
+                    <div class="card-title">👥 Manage Teams</div>
+                    <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Remove teams from the game. This
+                        cannot be undone.</p>
+                    <div id="org-teams-manage"></div>
+                </div>
+            </div>
         </div>
         <!-- GAME OVER SCREEN -->
         <div id="screen-gameover" class="screen">
@@ -1677,6 +1773,8 @@
     </div><!-- end .app -->
 
     <!-- Celebration canvas (fixed, above everything) -->
+    <!-- Game code bar -->
+    <div id="game-code-bar"></div>
     <canvas id="celebration-canvas"
         style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:600;display:none;"></canvas>
 
@@ -1854,6 +1952,7 @@
                         if (tab === 'leaderboard') { renderLeaderboard(); renderCourseProgress(); }
                         else if (tab === 'course') renderCourseTab();
                         else if (tab === 'penalties') renderPenaltiesTab();
+                        else if (tab === 'teams') renderTeamsManage();
                     }
                     break;
             }
@@ -1865,6 +1964,9 @@
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            const bar = document.getElementById('game-code-bar');
+            const inGame = (id === 'screen-game' || id === 'screen-gameover') && local.lobbyCode;
+            if (bar) { bar.textContent = local.lobbyCode || ''; bar.style.display = inGame ? 'block' : 'none'; }
         }
         function teamColor(idx) { return TEAM_COLORS[idx % TEAM_COLORS.length]; }
         function randCode() {
@@ -1988,11 +2090,23 @@
         // ============================================================
         // JOIN GAME
         // ============================================================
+        async function proceedToTeamDetails() {
+            if (!FIREBASE_READY) { alert('Firebase is not configured.'); return; }
+            const code = document.getElementById('join-code').value.trim().toUpperCase();
+            if (!code) { alert('Please enter a lobby code.'); return; }
+            let gameData;
+            try {
+                const snap = await db.ref('games/' + code).once('value');
+                gameData = snap.val();
+            } catch (e) { alert('Could not connect to Firebase. Check your internet connection.'); return; }
+            if (!gameData) { alert('Game not found. Check the lobby code and try again.'); return; }
+            showScreen('screen-join-team');
+        }
+
         async function joinGame() {
             if (!FIREBASE_READY) { alert('Firebase is not configured.'); return; }
             const code = document.getElementById('join-code').value.trim().toUpperCase();
             const teamName = document.getElementById('join-team-name').value.trim();
-            if (!code) { alert('Please enter a lobby code.'); return; }
             if (!teamName) { alert('Please enter your team name.'); return; }
             if (joinDraft.members.length === 0) { alert('Please add at least one member.'); return; }
 
@@ -2003,7 +2117,6 @@
             } catch (e) { alert('Could not connect to Firebase. Check your internet connection.'); return; }
 
             if (!gameData) { alert('Game not found. Check the lobby code and try again.'); return; }
-            if (gameData.gameStarted) { alert('This game has already started.'); return; }
 
             const teams = toArr(gameData.teams);
             if (teams.find(t => t.name === teamName)) { alert('That team name is already taken.'); return; }
@@ -2023,8 +2136,14 @@
 
             subscribeToGame(code);
             saveSession();
-            document.getElementById('display-code-player').textContent = code;
-            showScreen('screen-player-lobby');
+
+            if (gameData.gameStarted || gameData.gameEnded) {
+                showScreen('screen-game');
+                renderScoringHole();
+            } else {
+                document.getElementById('display-code-player').textContent = code;
+                showScreen('screen-player-lobby');
+            }
         }
 
         // ============================================================
@@ -2034,7 +2153,37 @@
             document.getElementById('display-code-org').textContent = local.lobbyCode;
             renderTeamsList('org-teams-list');
             renderHolesSetup();
+            // Open first hole by default
+            const firstBody = document.getElementById('hole-body-0');
+            if (firstBody && firstBody.style.display !== 'block') toggleHole(0);
             renderOrgPenaltySetup();
+        }
+
+        function renderTeamsManage() {
+            const container = document.getElementById('org-teams-manage');
+            if (!container) return;
+            if (state.teams.length === 0) { container.innerHTML = '<p class="text-muted">No teams in game.</p>'; return; }
+            container.innerHTML = state.teams.map((team, ti) => {
+                const members = toArr(team.members);
+                const color = teamColor(ti);
+                return `<div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid rgba(250,246,238,0.08);">
+                    <div style="border-left:3px solid ${color}; padding-left:10px;">
+                        <div style="font-weight:600; font-size:15px;">${team.name}${team.isOrganiser ? ' <span style="font-size:11px; color:rgba(250,246,238,0.4);">(organiser)</span>' : ''}</div>
+                        <div style="font-size:12px; color:rgba(250,246,238,0.45); margin-top:2px;">${members.length} member${members.length !== 1 ? 's' : ''}: ${members.map(m => m.name).join(', ')}</div>
+                    </div>
+                    ${team.isOrganiser ? '' : `<button class="btn btn-danger btn-sm" onclick="deleteTeamMidGame(${ti})">Remove</button>`}
+                </div>`;
+            }).join('');
+        }
+
+        function deleteTeamMidGame(ti) {
+            const team = state.teams[ti];
+            if (!confirm('Remove team "' + team.name + '" from the game? This cannot be undone.')) return;
+            const updatedTeams = state.teams.filter((_, i) => i !== ti);
+            const updatedScores = { ...state.scores };
+            delete updatedScores[team.name];
+            const updatedLog = toArr(state.penaltyLog).filter(p => p.teamName !== team.name);
+            patchState({ teams: updatedTeams, scores: updatedScores, penaltyLog: updatedLog });
         }
 
         function renderTeamsList(containerId) {
@@ -2092,10 +2241,6 @@
                             <span id="hole-summary-sub-${i}">Par ${hole.par} · ${bev}</span>
                         </div>
                         <div class="hole-controls">
-                            <button class="hole-type-badge ${hole.isWater ? 'water-active' : ''}" id="hole-water-btn-${i}"
-                                onclick="event.stopPropagation(); toggleHoleType(${i},'water')" title="Water Hole">🌊</button>
-                            <button class="hole-type-badge ${hole.isBunker ? 'bunker-active' : ''}" id="hole-bunker-btn-${i}"
-                                onclick="event.stopPropagation(); toggleHoleType(${i},'bunker')" title="Bunker Hole">⛱️</button>
                             ${state.holes.length > 1
                         ? `<button class="btn btn-danger btn-sm btn-icon" onclick="event.stopPropagation(); removeHole(${i})" style="font-size:11px; padding:4px 7px;">✕</button>`
                         : ''}
@@ -2129,10 +2274,19 @@
                                 </select>
                             </div>
                             <div class="form-group mb-4">
-                                <label>Special Rule</label>
-                                <input type="text" placeholder="e.g. Left hand only" maxlength="80" value="${hole.specialRule}"
-                                    oninput="updateHoleText(${i},'specialRule',this.value)">
+                                <label>Hazards</label>
+                                <div class="hazard-toggle-row">
+                                    <button class="hazard-btn${hole.isWater ? ' water-active' : ''}" id="hole-water-btn-${i}"
+                                        onclick="toggleHoleType(${i},'water')" type="button">🌊 Water</button>
+                                    <button class="hazard-btn${hole.isBunker ? ' bunker-active' : ''}" id="hole-bunker-btn-${i}"
+                                        onclick="toggleHoleType(${i},'bunker')" type="button">⛱️ Bunker</button>
+                                </div>
                             </div>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label>Special Rule</label>
+                            <input type="text" placeholder="e.g. Left hand only" maxlength="80" value="${hole.specialRule}"
+                                oninput="updateHoleText(${i},'specialRule',this.value)">
                         </div>
                     </div>
                 </div>`;
@@ -2312,13 +2466,15 @@
         // TAB SWITCHING
         // ============================================================
         function switchTab(tab) {
-            ['score', 'leaderboard', 'course', 'penalties'].forEach(t => {
+            ['score', 'leaderboard', 'course', 'penalties', 'teams'].forEach(t => {
                 document.getElementById('game-tab-' + t).style.display = (t === tab) ? 'block' : 'none';
-                document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+                const btn = document.getElementById('tab-' + t);
+                if (btn) btn.classList.toggle('active', t === tab);
             });
             if (tab === 'leaderboard') { renderLeaderboard(); renderCourseProgress(); }
             if (tab === 'course') renderCourseTab();
             if (tab === 'penalties') renderPenaltiesTab();
+            if (tab === 'teams') renderTeamsManage();
         }
 
         function changeHole(delta) {
@@ -2338,6 +2494,8 @@
             const hi = local.currentHoleIndex;
             const hole = state.holes[hi];
             if (!hole) return;
+            const teamsTab = document.getElementById('tab-teams');
+            if (teamsTab) teamsTab.style.display = local.isOrganiser ? '' : 'none';
 
             document.getElementById('game-hole-title').textContent =
                 `Hole ${hole.number}` + (hole.location ? ` — ${hole.location}` : '');
@@ -2596,7 +2754,7 @@
             }).sort((a, b) => {
                 if (a.played === 0 && b.played === 0) return 0;
                 if (a.played === 0) return 1; if (b.played === 0) return -1;
-                return a.total - b.total;
+                return a.diff - b.diff;
             });
             const medals = ['🥇', '🥈', '🥉'];
             container.innerHTML = rows.map((row, rank) => {
@@ -2756,7 +2914,7 @@
             }).sort((a, b) => {
                 if (a.played === 0 && b.played === 0) return 0;
                 if (a.played === 0) return 1; if (b.played === 0) return -1;
-                return a.total - b.total;
+                return a.diff - b.diff;
             });
 
             // Determine this device's result
