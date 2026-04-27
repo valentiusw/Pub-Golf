@@ -2073,10 +2073,12 @@
             // Build initial game state with default holes
             const holes = [makeHole(1), makeHole(2), makeHole(3)];
             const initialData = { gameName, gameStarted: false, teams: [], holes, scores: {}, penalties: [], penaltyLog: [] };
+
+            // Apply to local state immediately so holes show up
+            applySnapshot(initialData);
+
             if (db) {
                 await db.ref('games/' + code).set(initialData);
-            } else {
-                applySnapshot(initialData);
             }
 
             // Set local identity
