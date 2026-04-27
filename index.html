@@ -1575,17 +1575,6 @@
             </div>
         </div>
 
-        <!-- ORGANIZER SETUP (game name + hole setup before lobby) -->
-        <div id="screen-org-setup" class="screen">
-            <div class="back-btn" onclick="showScreen('screen-create')">← Back</div>
-            <div class="card">
-                <div class="card-title">⛳ Hole Setup</div>
-                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Add holes and configure par, beverage, and special rules.</p>
-                <div id="org-setup-holes"></div>
-                <button class="btn btn-secondary" style="width:100%; margin-top:8px;" onclick="addHoleToSetup()">+ Add Hole</button>
-            </div>
-            <button class="btn btn-primary" onclick="finishOrgSetup()">Create Lobby →</button>
-        </div>
 
         <!-- JOIN (step 1: code entry) -->
         <div id="screen-join" class="screen">
@@ -1642,6 +1631,33 @@
             <div class="card">
                 <div class="card-title">👥 Teams Joined</div>
                 <div id="org-teams-list"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">🎯 Your Team (Optional)</div>
+                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Create a team to play as the organizer, or leave empty to just referee.</p>
+                <div id="org-my-team-display"></div>
+                <div id="org-my-team-form" style="display:none;">
+                    <div class="form-group">
+                        <label>Team Name</label>
+                        <input type="text" id="org-my-team-name" placeholder="e.g. The Refs" maxlength="30">
+                    </div>
+                    <label>Add Team Members</label>
+                    <div class="member-add-row" style="margin-top:8px;">
+                        <input type="text" id="org-my-member-name" placeholder="Member name" maxlength="24"
+                            onkeydown="if(event.key==='Enter') addOrgTeamMember()">
+                        <input type="number" id="org-my-member-hcp" placeholder="HCP" min="0" max="20"
+                            style="flex:0 0 72px; min-width:60px; text-align:center;"
+                            onkeydown="if(event.key==='Enter') addOrgTeamMember()">
+                        <button class="btn btn-secondary btn-sm" onclick="addOrgTeamMember()">+ Add</button>
+                    </div>
+                    <div style="font-size:11px; color:rgba(250,246,238,0.35); margin-top:5px;">HCP = handicap (extra sips per hole)</div>
+                    <div id="org-my-members-list" style="margin-top:12px;"></div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;">
+                        <button class="btn btn-secondary" onclick="cancelOrgTeam()">Cancel</button>
+                        <button class="btn btn-primary" onclick="saveOrgTeam()">Save Team</button>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" id="org-create-team-btn" style="width:100%;" onclick="startOrgTeamForm()">+ Create Your Team</button>
             </div>
             <div class="card">
                 <div class="card-title">⛳ Hole Setup</div>
@@ -2037,66 +2053,9 @@
         // ============================================================
         // CREATE GAME
         // ============================================================
-        // Temporary storage for organizer setup
-        let orgSetupData = { gameName: '', holes: [] };
-
         async function createGame() {
             const gameName = document.getElementById('create-game-name').value.trim();
             if (!gameName) { alert('Please enter a game name.'); return; }
-
-            orgSetupData.gameName = gameName;
-            orgSetupData.holes = [makeHole(1), makeHole(2), makeHole(3)];
-            renderOrgSetupHoles();
-            showScreen('screen-org-setup');
-        }
-
-        function renderOrgSetupHoles() {
-            const container = document.getElementById('org-setup-holes');
-            if (!container) return;
-            container.innerHTML = orgSetupData.holes.map((hole, i) => {
-                const bev = bevDisplay(hole);
-                return `
-                <div class="hole-card">
-                    <div class="hole-header" onclick="toggleSetupHole(${i})">
-                        <div class="hole-num">${hole.number}</div>
-                        <div class="hole-summary">
-                            <strong>${hole.location || 'Hole ' + hole.number}</strong>
-                            <span>Par ${hole.par} · ${bev}</span>
-                        </div>
-                    </div>
-                    <div id="setup-hole-body-${i}" class="hole-body" style="display:none;">
-                        <div class="form-group">
-                            <label>Location/Pub Name</label>
-                            <input type="text" value="${hole.location}" maxlength="40" onchange="orgSetupData.holes[${i}].location = this.value">
-                        </div>
-                        <div class="input-row">
-                            <div class="form-group"><label>Par</label><input type="number" value="${hole.par}" min="2" max="8" onchange="orgSetupData.holes[${i}].par = parseInt(this.value)"></div>
-                            <div class="form-group"><label>Beverage</label><select onchange="orgSetupData.holes[${i}].beverage = this.value"><option value="${hole.beverage}" selected>${hole.beverage}</option>${BEVERAGES.filter(b => b !== hole.beverage).map(b => `<option value="${b}">${b}</option>`).join('')}</select></div>
-                        </div>
-                        <button class="btn btn-danger btn-sm" onclick="removeSetupHole(${i})" style="width:100%;">Remove Hole</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function toggleSetupHole(i) {
-            const body = document.getElementById('setup-hole-body-' + i);
-            if (body) body.style.display = body.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function addHoleToSetup() {
-            const nextNum = Math.max(...orgSetupData.holes.map(h => h.number), 0) + 1;
-            orgSetupData.holes.push(makeHole(nextNum));
-            renderOrgSetupHoles();
-        }
-
-        function removeSetupHole(i) {
-            orgSetupData.holes.splice(i, 1);
-            renderOrgSetupHoles();
-        }
-
-        async function finishOrgSetup() {
-            if (orgSetupData.holes.length === 0) { alert('Please add at least one hole.'); return; }
 
             // Find a unique lobby code
             let code = randCode();
@@ -2110,8 +2069,9 @@
                 if (attempts >= 10) { alert('Could not generate a unique game code. Try again.'); return; }
             }
 
-            // Build initial game state (no organizer team)
-            const initialData = { gameName: orgSetupData.gameName, gameStarted: false, teams: [], holes: orgSetupData.holes, scores: {}, penalties: [], penaltyLog: [] };
+            // Build initial game state with default holes
+            const holes = [makeHole(1), makeHole(2), makeHole(3)];
+            const initialData = { gameName, gameStarted: false, teams: [], holes, scores: {}, penalties: [], penaltyLog: [] };
             if (db) {
                 await db.ref('games/' + code).set(initialData);
             } else {
@@ -2196,11 +2156,106 @@
         function renderOrganiserLobby() {
             document.getElementById('display-code-org').textContent = local.lobbyCode;
             renderTeamsList('org-teams-list');
+            renderOrgMyTeamDisplay();
             renderHolesSetup();
             // Open first hole by default
             const firstBody = document.getElementById('hole-body-0');
             if (firstBody && firstBody.style.display !== 'block') toggleHole(0);
             renderOrgPenaltySetup();
+        }
+
+        // Organizer team creation
+        let orgTeamDraft = { members: [] };
+
+        function renderOrgMyTeamDisplay() {
+            const display = document.getElementById('org-my-team-display');
+            const form = document.getElementById('org-my-team-form');
+            const btn = document.getElementById('org-create-team-btn');
+
+            if (local.myTeamName) {
+                const team = state.teams.find(t => t.isOrganiser);
+                const members = team ? toArr(team.members) : [];
+                display.innerHTML = `<div class="team-card" style="--team-color:#fbb040;"><div class="team-card-header"><span class="team-card-name">${local.myTeamName}</span><span class="badge badge-organiser">Organiser</span></div><div class="team-members-mini">${members.map(m => `<div class="mini-chip"><span class="handicap-badge" style="font-size:9px; padding:2px 5px;">HCP ${m.handicap}</span>${m.name}</div>`).join('')}</div></div><button class="btn btn-secondary" style="width:100%; margin-top:8px;" onclick="deleteOrgTeam()">Remove Your Team</button>`;
+                form.style.display = 'none';
+                btn.style.display = 'none';
+            } else {
+                display.innerHTML = '';
+                btn.style.display = 'block';
+            }
+        }
+
+        function startOrgTeamForm() {
+            orgTeamDraft.members = [];
+            document.getElementById('org-my-team-name').value = '';
+            document.getElementById('org-my-team-form').style.display = 'block';
+            document.getElementById('org-create-team-btn').style.display = 'none';
+            renderOrgTeamMembers();
+        }
+
+        function cancelOrgTeam() {
+            document.getElementById('org-my-team-form').style.display = 'none';
+            document.getElementById('org-create-team-btn').style.display = 'block';
+            orgTeamDraft.members = [];
+        }
+
+        function addOrgTeamMember() {
+            const name = document.getElementById('org-my-member-name').value.trim();
+            const hcp = parseInt(document.getElementById('org-my-member-hcp').value) || 0;
+            if (!name) { alert('Enter member name'); return; }
+            if (orgTeamDraft.members.some(m => m.name.toLowerCase() === name.toLowerCase())) { alert('Member already added'); return; }
+            orgTeamDraft.members.push({ name, handicap: hcp });
+            document.getElementById('org-my-member-name').value = '';
+            document.getElementById('org-my-member-hcp').value = '';
+            renderOrgTeamMembers();
+        }
+
+        function removeOrgTeamMember(i) {
+            orgTeamDraft.members.splice(i, 1);
+            renderOrgTeamMembers();
+        }
+
+        function renderOrgTeamMembers() {
+            const list = document.getElementById('org-my-members-list');
+            if (orgTeamDraft.members.length === 0) { list.innerHTML = '<div class="text-muted" style="font-size:13px; padding:4px 0;">No members added yet.</div>'; return; }
+            list.innerHTML = orgTeamDraft.members.map((m, i) => `
+                <div class="team-member-chip">
+                    <span class="handicap-badge">HCP ${m.handicap}</span>
+                    <span class="name">${m.name}</span>
+                    <button class="btn btn-danger btn-sm btn-icon" onclick="removeOrgTeamMember(${i})" style="margin-left:auto;">✕</button>
+                </div>`).join('');
+        }
+
+        async function saveOrgTeam() {
+            const teamName = document.getElementById('org-my-team-name').value.trim();
+            if (!teamName) { alert('Enter your team name'); return; }
+            if (orgTeamDraft.members.length === 0) { alert('Add at least one member'); return; }
+
+            const team = { name: teamName, members: orgTeamDraft.members.slice(), isOrganiser: true };
+            const updatedTeams = [...state.teams, team];
+            const scores = { ...state.scores };
+            scores[teamName] = {};
+            orgTeamDraft.members.forEach(m => { scores[teamName][m.name] = new Array(state.holes.length).fill(null); });
+
+            await patchState({ teams: updatedTeams, scores });
+            local.myTeamName = teamName;
+            saveSession();
+            cancelOrgTeam();
+            renderOrgMyTeamDisplay();
+            renderTeamsList('org-teams-list');
+        }
+
+        function deleteOrgTeam() {
+            if (!confirm('Remove your team from the game?')) return;
+            const updatedTeams = state.teams.filter(t => !t.isOrganiser);
+            const updatedScores = { ...state.scores };
+            delete updatedScores[local.myTeamName];
+            state.teams = updatedTeams;
+            state.scores = updatedScores;
+            local.myTeamName = '';
+            patchState({ teams: updatedTeams, scores: updatedScores });
+            saveSession();
+            renderOrgMyTeamDisplay();
+            renderTeamsList('org-teams-list');
         }
 
         function renderTeamsManage() {
