@@ -13,6 +13,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
+    <!-- SheetJS for Excel import/export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
         :root {
             --green: #1a6b3c;
@@ -1668,6 +1671,11 @@
             </div>
             <div class="card">
                 <div class="card-title">⛳ Hole Setup</div>
+                <div style="display:flex; gap:8px; margin-bottom:12px;">
+                    <button class="btn btn-secondary btn-sm" onclick="downloadHoleTemplate()" style="flex:1;">📥 Download Template</button>
+                    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('hole-excel-upload').click()" style="flex:1;">📤 Upload Excel</button>
+                    <input type="file" id="hole-excel-upload" accept=".xlsx,.xls" style="display:none;" onchange="uploadHoleExcel(event)">
+                </div>
                 <div id="org-holes-setup"></div>
             </div>
             <div class="card">
@@ -2507,6 +2515,92 @@
                 saveSession();
                 renderHolesSetup();
             });
+        }
+
+        // Excel template download
+        function downloadHoleTemplate() {
+            const headers = ['Location / Bar Name', 'Beverage', 'Par (sips)', 'Hazard', 'Special Rule'];
+            const exampleRow = ['The Crown', '🍺 Pint', 4, '', 'Left hand only'];
+            const data = [headers, exampleRow, ...Array(17).fill(null).map(() => ['', '', '', '', ''])];
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Holes');
+            XLSX.writeFile(workbook, 'hole-template.xlsx');
+        }
+
+        // Parse and upload Excel file
+        function uploadHoleExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    const newHoles = [];
+                    for (let i = 1; i < rows.length && newHoles.length < 18; i++) {
+                        const row = rows[i];
+                        if (!row || row.every(cell => !cell || (typeof cell === 'string' && !cell.trim()))) continue;
+
+                        const location = (row[0] || '').toString().trim();
+                        const beverageInput = (row[1] || '').toString().trim();
+                        const parInput = parseInt(row[2]) || 4;
+                        const hazardInput = (row[3] || '').toString().toLowerCase().trim();
+                        const specialRule = (row[4] || '').toString().trim();
+
+                        // Match beverage: case-insensitive exact match, else use as custom
+                        let beverage = BEVERAGES[0];
+                        let customBeverage = '';
+                        if (beverageInput) {
+                            const match = BEVERAGES.find(b => b.toLowerCase() === beverageInput.toLowerCase());
+                            if (match) {
+                                beverage = match;
+                            } else {
+                                beverage = 'Other...';
+                                customBeverage = beverageInput;
+                            }
+                        }
+
+                        const hole = {
+                            number: newHoles.length + 1,
+                            location,
+                            beverage,
+                            customBeverage,
+                            par: Math.max(1, Math.min(8, parInput)),
+                            isWater: hazardInput === 'water',
+                            isBunker: hazardInput === 'bunker',
+                            specialRule
+                        };
+                        newHoles.push(hole);
+                    }
+
+                    if (newHoles.length === 0) { alert('No valid holes found in the file.'); return; }
+
+                    // Rebuild score arrays for all existing teams
+                    state.holes = newHoles;
+                    state.teams.forEach(team => {
+                        if (!state.scores[team.name]) state.scores[team.name] = {};
+                        toArr(team.members).forEach(m => {
+                            state.scores[team.name][m.name] = new Array(newHoles.length).fill(null);
+                        });
+                    });
+
+                    patchState({ holes: state.holes, scores: state.scores });
+                    saveSession();
+                    renderHolesSetup();
+                    alert(`✅ Loaded ${newHoles.length} hole${newHoles.length === 1 ? '' : 's'}`);
+                    // Reset file input
+                    event.target.value = '';
+                } catch (err) {
+                    alert('Error reading file: ' + err.message);
+                    event.target.value = '';
+                }
+            };
+            reader.readAsArrayBuffer(file);
         }
 
         // ============================================================
