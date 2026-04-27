@@ -2070,8 +2070,8 @@
                 if (attempts >= 10) { alert('Could not generate a unique game code. Try again.'); return; }
             }
 
-            // Build initial game state with default holes
-            const holes = [makeHole(1), makeHole(2), makeHole(3)];
+            // Build initial game state with default hole
+            const holes = [makeHole(1)];
             const initialData = { gameName, gameStarted: false, teams: [], holes, scores: {}, penalties: [], penaltyLog: [] };
 
             // Apply to local state immediately so holes show up
