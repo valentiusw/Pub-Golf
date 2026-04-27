@@ -1767,8 +1767,10 @@
                 <div id="gameover-leaderboard"></div>
             </div>
             <div id="gameover-progress"></div>
-            <button class="btn btn-secondary" style="width:100%; margin-top:8px;" onclick="backToGame()">← Back to
-                Game</button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px;">
+                <button class="btn btn-secondary" onclick="backToGame()">← Back to Game</button>
+                <button class="btn btn-primary" onclick="returnToHomeLobby()">🏠 Home Lobby</button>
+            </div>
         </div>
     </div><!-- end .app -->
 
@@ -2924,6 +2926,31 @@
         function backToGame() {
             showScreen('screen-game');
             renderScoringHole();
+        }
+
+        function returnToHomeLobby() {
+            if (gameRef) gameRef.off('value');
+            local.lobbyCode = null;
+            local.isOrganiser = false;
+            local.myTeamName = '';
+            local.currentHoleIndex = 0;
+            state = {
+                gameName: '',
+                gameStarted: false,
+                gameEnded: false,
+                teams: [],
+                holes: [],
+                scores: {},
+                penalties: [],
+                penaltyLog: []
+            };
+            localStorage.removeItem('pgSession');
+            sessionStorage.removeItem('pgSession');
+            createDraft.members = [];
+            joinDraft.members = [];
+            showScreen('screen-home');
+            renderDraftMembers('create');
+            renderDraftMembers('join');
         }
 
         function renderGameOver() {
