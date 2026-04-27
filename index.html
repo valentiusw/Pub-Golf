@@ -2475,7 +2475,6 @@
             });
             patchState({ holes: state.holes, scores: state.scores }).then(() => {
                 saveSession();
-                renderHolesSetup();
                 toggleHole(newIdx);
             });
         }
