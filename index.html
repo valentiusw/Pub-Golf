@@ -1843,6 +1843,7 @@
         let joinDraft = { members: [] };
         let gameRef = null;           // active Firebase listener ref
         const debounceTimers = {};
+        let isAddingHole = false;     // prevent rapid hole additions
         const lbExpanded = new Set();  // team names expanded in leaderboard
 
         const TEAM_COLORS = ['#e74c3c', '#3498db', '#9b59b6', '#1abc9c', '#e67e22', '#2ecc71', '#e91e63', '#ff5722', '#00bcd4'];
@@ -2461,7 +2462,9 @@
         }
 
         function addHole() {
+            if (isAddingHole) return;
             if (state.holes.length >= 18) { alert('Maximum 18 holes.'); return; }
+            isAddingHole = true;
             const newIdx = state.holes.length;
             state.holes.push(makeHole(newIdx + 1));
             // Extend score arrays for all existing teams
@@ -2476,7 +2479,7 @@
             patchState({ holes: state.holes, scores: state.scores });
             saveSession();
             renderHolesSetup();
-            setTimeout(() => toggleHole(newIdx), 50);
+            setTimeout(() => { toggleHole(newIdx); isAddingHole = false; }, 50);
         }
 
         function removeHole(i) {
