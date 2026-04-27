@@ -2473,10 +2473,10 @@
                     state.scores[team.name][m.name] = arr;
                 });
             });
-            patchState({ holes: state.holes, scores: state.scores }).then(() => {
-                saveSession();
-                toggleHole(newIdx);
-            });
+            patchState({ holes: state.holes, scores: state.scores });
+            saveSession();
+            renderHolesSetup();
+            setTimeout(() => toggleHole(newIdx), 50);
         }
 
         function removeHole(i) {
