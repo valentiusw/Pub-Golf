@@ -3432,54 +3432,90 @@
     <script>
     // Google Maps Utilities
 
+    /**
+     * Initialize a Google Map with marker and infowindow for a pub location
+     * @param {string} containerId - ID of the HTML container element for the map
+     * @param {number} latitude - Latitude of pub location (-90 to 90)
+     * @param {number} longitude - Longitude of pub location (-180 to 180)
+     * @param {string} pubName - Name of the pub (will be safely escaped)
+     * @param {string} pubAddress - Address of the pub (will be safely escaped)
+     */
     function initializeMapForHole(containerId, latitude, longitude, pubName, pubAddress) {
+      // Validate container
       const container = document.getElementById(containerId);
       if (!container) {
         console.error(`Map container with id "${containerId}" not found`);
         return;
       }
 
-      // Check if Google Maps API is loaded
-      if (typeof google === 'undefined' || !google.maps) {
-        console.error('Google Maps API not loaded');
-        container.innerHTML = '<p style="color: #ccc; padding: 10px;">Map unavailable</p>';
+      // Validate coordinates
+      if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+        console.error(`Invalid coordinates: latitude ${latitude} (must be -90 to 90), longitude ${longitude} (must be -180 to 180)`);
         return;
       }
 
+      // Check if Google Maps API is loaded
+      if (typeof google === 'undefined' || !google.maps) {
+        console.error('Google Maps API not loaded. Check if API key is configured in googleMapsConfig.js');
+        container.innerHTML = '<p style="color: #ccc; padding: 10px;">Map unavailable. Please check API configuration.</p>';
+        return;
+      }
+
+      // Map styling using app's color theme
       const mapOptions = {
-        zoom: 15,
+        zoom: 15, // Street-level view of pub location
         center: { lat: latitude, lng: longitude },
         disableDefaultUI: false,
         styles: [
-          { elementType: 'geometry', stylers: [{ color: '#1a1a1a' }] },
-          { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1a1a' }] },
-          { elementType: 'labels.text.fill', stylers: [{ color: '#faf6ee' }] },
+          { elementType: 'geometry', stylers: [{ color: '#0e3d22' }] }, // green-dark
+          { elementType: 'labels.text.stroke', stylers: [{ color: '#0e3d22' }] }, // green-dark
+          { elementType: 'labels.text.fill', stylers: [{ color: '#faf6ee' }] }, // cream
         ],
       };
 
-      const map = new google.maps.Map(container, mapOptions);
+      // Initialize map
+      let map;
+      try {
+        map = new google.maps.Map(container, mapOptions);
+      } catch (error) {
+        console.error('Failed to initialize map:', error);
+        container.innerHTML = '<p style="color: #ccc; padding: 10px;">Map initialization failed. See console for details.</p>';
+        return;
+      }
 
+      // Create marker
       const marker = new google.maps.Marker({
         position: { lat: latitude, lng: longitude },
         map: map,
         title: pubName,
       });
 
-      const infoContent = `<div style="color: #000; padding: 8px;">
-        <strong>${pubName}</strong><br>
-        ${pubAddress}
-      </div>`;
+      // Create infowindow content safely using DOM methods (prevents XSS)
+      const infoDiv = document.createElement('div');
+      infoDiv.style.color = '#faf6ee'; // Use cream color from theme
+      infoDiv.style.padding = '8px';
+
+      const nameElement = document.createElement('strong');
+      nameElement.textContent = pubName; // Safe - no HTML parsing
+      infoDiv.appendChild(nameElement);
+
+      infoDiv.appendChild(document.createElement('br'));
+
+      const addressElement = document.createElement('div');
+      addressElement.textContent = pubAddress; // Safe - no HTML parsing
+      infoDiv.appendChild(addressElement);
 
       const infowindow = new google.maps.InfoWindow({
-        content: infoContent,
-      });
-
-      marker.addListener('click', function() {
-        infowindow.open(map, marker);
+        content: infoDiv,
       });
 
       // Open infowindow by default
       infowindow.open(map, marker);
+
+      // Allow reopening infowindow by clicking marker
+      marker.addListener('click', function() {
+        infowindow.open(map, marker);
+      });
     }
     </script>
 </body>
