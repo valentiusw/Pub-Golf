@@ -2404,7 +2404,7 @@
                         <div class="hole-row">
                             <div class="form-group mb-4">
                                 <label>Location / Bar Name</label>
-                                <input type="text" placeholder="e.g. The Crown" maxlength="40" value="${hole.location}"
+                                <input type="text" id="hole-location-input-${i}" placeholder="e.g. The Crown" maxlength="40" value="${hole.location}"
                                     oninput="updateHoleText(${i},'location',this.value)">
                             </div>
                             <div class="form-group mb-4">
@@ -2457,6 +2457,32 @@
                 if (hole.pubLat && hole.pubLng) {
                     initializeMapForHole('hole-map-' + i, hole.pubLat, hole.pubLng, hole.pubName || hole.location || 'Hole ' + hole.number, hole.address || '');
                 }
+            });
+
+            // Initialize autocomplete for hole location inputs
+            state.holes.forEach((hole, i) => {
+                initializePubAutocomplete('hole-location-input-' + i, function(selectedPlace) {
+                    // Update hole with pub coordinates and details
+                    state.holes[i].location = selectedPlace.name;
+                    state.holes[i].pubName = selectedPlace.name;
+                    state.holes[i].address = selectedPlace.address;
+                    state.holes[i].pubLat = selectedPlace.lat;
+                    state.holes[i].pubLng = selectedPlace.lng;
+
+                    // Update the input with the selected pub name
+                    document.getElementById('hole-location-input-' + i).value = selectedPlace.name;
+
+                    // Save changes to state
+                    patchState({ holes: state.holes });
+                    saveSession();
+
+                    // Initialize map for this hole
+                    initializeMapForHole('hole-map-' + i, selectedPlace.lat, selectedPlace.lng, selectedPlace.name, selectedPlace.address);
+
+                    // Show the map
+                    const mapContainer = document.getElementById('hole-map-' + i);
+                    if (mapContainer) mapContainer.style.display = 'block';
+                });
             });
         }
 
