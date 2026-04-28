@@ -3428,6 +3428,60 @@
         renderDraftMembers('join');
         tryRestoreSession();
     </script>
+
+    <script>
+    // Google Maps Utilities
+
+    function initializeMapForHole(containerId, latitude, longitude, pubName, pubAddress) {
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.error(`Map container with id "${containerId}" not found`);
+        return;
+      }
+
+      // Check if Google Maps API is loaded
+      if (typeof google === 'undefined' || !google.maps) {
+        console.error('Google Maps API not loaded');
+        container.innerHTML = '<p style="color: #ccc; padding: 10px;">Map unavailable</p>';
+        return;
+      }
+
+      const mapOptions = {
+        zoom: 15,
+        center: { lat: latitude, lng: longitude },
+        disableDefaultUI: false,
+        styles: [
+          { elementType: 'geometry', stylers: [{ color: '#1a1a1a' }] },
+          { elementType: 'labels.text.stroke', stylers: [{ color: '#1a1a1a' }] },
+          { elementType: 'labels.text.fill', stylers: [{ color: '#faf6ee' }] },
+        ],
+      };
+
+      const map = new google.maps.Map(container, mapOptions);
+
+      const marker = new google.maps.Marker({
+        position: { lat: latitude, lng: longitude },
+        map: map,
+        title: pubName,
+      });
+
+      const infoContent = `<div style="color: #000; padding: 8px;">
+        <strong>${pubName}</strong><br>
+        ${pubAddress}
+      </div>`;
+
+      const infowindow = new google.maps.InfoWindow({
+        content: infoContent,
+      });
+
+      marker.addListener('click', function() {
+        infowindow.open(map, marker);
+      });
+
+      // Open infowindow by default
+      infowindow.open(map, marker);
+    }
+    </script>
 </body>
 
 </html>
