@@ -3517,6 +3517,58 @@
         infowindow.open(map, marker);
       });
     }
+
+    /**
+     * Initialize Google Places autocomplete for pub name search
+     * Constrains results to Sydney area and establishment types
+     * @param {string} inputElementId - ID of the input field for pub search
+     * @param {function} onSelectCallback - Callback function when place is selected
+     */
+    function initializePubAutocomplete(inputElementId, onSelectCallback) {
+      const inputElement = document.getElementById(inputElementId);
+      if (!inputElement) {
+        console.error(`Autocomplete input with id "${inputElementId}" not found`);
+        return;
+      }
+
+      // Check if Google Places API is loaded
+      if (typeof google === 'undefined' || !google.maps || !google.maps.places) {
+        console.error('Google Places API not loaded');
+        return;
+      }
+
+      // Sydney area bounds (approximately)
+      const sydneyBounds = new google.maps.LatLngBounds(
+        new google.maps.LatLng(-34.118, 150.644), // SW corner (Wollongong area)
+        new google.maps.LatLng(-33.865, 151.293)   // NE corner (Gosford area)
+      );
+
+      const autocomplete = new google.maps.places.Autocomplete(inputElement, {
+        bounds: sydneyBounds,
+        componentRestrictions: { country: 'au' },
+        types: ['establishment'],
+      });
+
+      autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+
+        if (!place.geometry) {
+          console.error('Place details missing geometry');
+          return;
+        }
+
+        const result = {
+          name: place.name,
+          address: place.formatted_address,
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+        };
+
+        if (typeof onSelectCallback === 'function') {
+          onSelectCallback(result);
+        }
+      });
+    }
     </script>
 </body>
 
