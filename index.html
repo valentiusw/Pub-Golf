@@ -1481,6 +1481,22 @@
             border: 1px solid rgba(94, 201, 136, 0.25);
         }
     </style>
+
+    <script src="googleMapsConfig.js"></script>
+    <script>
+        // Wait for config to load, then load Google Maps API
+        window.addEventListener('DOMContentLoaded', function() {
+            if (typeof GOOGLE_MAPS_API_KEY !== 'undefined') {
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            } else {
+                console.error('GOOGLE_MAPS_API_KEY not defined in googleMapsConfig.js');
+            }
+        });
+    </script>
 </head>
 
 <body>
