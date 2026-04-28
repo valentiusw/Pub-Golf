@@ -688,6 +688,12 @@
             border-top: 1px solid rgba(250, 246, 238, 0.06);
         }
 
+        .hole-map-container {
+            background: rgba(14, 61, 34, 0.3);
+            border: 1px solid rgba(250, 246, 238, 0.1);
+            margin: 10px 0;
+        }
+
         .hole-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -2035,7 +2041,7 @@
             return hole.beverage === 'Other...' ? (hole.customBeverage || 'Custom drink') : hole.beverage;
         }
         function makeHole(number) {
-            return { number, par: 4, location: '', beverage: BEVERAGES[0], customBeverage: '', specialRule: '', isWater: false, isBunker: false };
+            return { number, par: 4, location: '', beverage: BEVERAGES[0], customBeverage: '', specialRule: '', isWater: false, isBunker: false, pubName: '', address: '', pubLat: null, pubLng: null };
         }
 
         // ============================================================
@@ -2393,6 +2399,7 @@
                             <span style="color:rgba(250,246,238,0.4); font-size:11px;" id="hole-arrow-${i}">▼</span>
                         </div>
                     </div>
+                    <div id="hole-map-${i}" class="hole-map-container" style="height: 300px; margin: 10px 0; border-radius: 8px; overflow: hidden; display: none;"></div>
                     <div class="hole-body" id="hole-body-${i}" style="display:none;">
                         <div class="hole-row">
                             <div class="form-group mb-4">
@@ -2444,14 +2451,23 @@
                 <span class="text-muted" style="font-size:12px;">${state.holes.length}/18 holes</span>
             </div>`;
             container.innerHTML = html;
+
+            // Initialize maps for holes with coordinates
+            state.holes.forEach((hole, i) => {
+                if (hole.pubLat && hole.pubLng) {
+                    initializeMapForHole('hole-map-' + i, hole.pubLat, hole.pubLng, hole.pubName || hole.location || 'Hole ' + hole.number, hole.address || '');
+                }
+            });
         }
 
         function toggleHole(i) {
             const body = document.getElementById('hole-body-' + i);
+            const map = document.getElementById('hole-map-' + i);
             const arrow = document.getElementById('hole-arrow-' + i);
             if (!body) return;
             const open = body.style.display === 'block';
             body.style.display = open ? 'none' : 'block';
+            if (map) map.style.display = open ? 'none' : 'block';
             arrow.textContent = open ? '▼' : '▲';
         }
 
