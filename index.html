@@ -3522,9 +3522,21 @@
      * Initialize Google Places autocomplete for pub name search
      * Constrains results to Sydney area and establishment types
      * @param {string} inputElementId - ID of the input field for pub search
-     * @param {function} onSelectCallback - Callback function when place is selected
+     * @param {function} onSelectCallback - Callback(place: {name, address, lat, lng})
+     *                                     Called when user selects a place
+     * @returns {void} Sets up event listener on input element
      */
     function initializePubAutocomplete(inputElementId, onSelectCallback) {
+      // Pub search configuration (Sydney focus)
+      const PUB_SEARCH_CONFIG = {
+        bounds: {
+          sw: { lat: -34.118, lng: 150.644 }, // Southwest (Wollongong area)
+          ne: { lat: -33.865, lng: 151.293 }   // Northeast (Gosford area)
+        },
+        country: 'au',      // Australia
+        placeTypes: ['establishment']  // Only show businesses
+      };
+
       const inputElement = document.getElementById(inputElementId);
       if (!inputElement) {
         console.error(`Autocomplete input with id "${inputElementId}" not found`);
@@ -3537,35 +3549,60 @@
         return;
       }
 
-      // Sydney area bounds (approximately)
-      const sydneyBounds = new google.maps.LatLngBounds(
-        new google.maps.LatLng(-34.118, 150.644), // SW corner (Wollongong area)
-        new google.maps.LatLng(-33.865, 151.293)   // NE corner (Gosford area)
-      );
+      // Create Sydney area bounds for search results
+      let sydneyBounds;
+      try {
+        sydneyBounds = new google.maps.LatLngBounds(
+          new google.maps.LatLng(PUB_SEARCH_CONFIG.bounds.sw.lat, PUB_SEARCH_CONFIG.bounds.sw.lng),
+          new google.maps.LatLng(PUB_SEARCH_CONFIG.bounds.ne.lat, PUB_SEARCH_CONFIG.bounds.ne.lng)
+        );
+      } catch (error) {
+        console.error('Failed to create bounds for pub search:', error);
+        return;
+      }
 
-      const autocomplete = new google.maps.places.Autocomplete(inputElement, {
-        bounds: sydneyBounds,
-        componentRestrictions: { country: 'au' },
-        types: ['establishment'],
-      });
+      // Initialize autocomplete with error handling
+      let autocomplete;
+      try {
+        autocomplete = new google.maps.places.Autocomplete(inputElement, {
+          bounds: sydneyBounds,
+          componentRestrictions: { country: PUB_SEARCH_CONFIG.country },
+          types: PUB_SEARCH_CONFIG.placeTypes,
+        });
+      } catch (error) {
+        console.error('Failed to initialize autocomplete:', error);
+        return;
+      }
 
+      // Handle place selection with error handling
       autocomplete.addListener('place_changed', function() {
-        const place = autocomplete.getPlace();
+        try {
+          const place = autocomplete.getPlace();
 
-        if (!place.geometry) {
-          console.error('Place details missing geometry');
-          return;
-        }
+          if (!place.geometry) {
+            console.error('Place details missing geometry');
+            return;
+          }
 
-        const result = {
-          name: place.name,
-          address: place.formatted_address,
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng(),
-        };
+          // Validate place data before passing to callback
+          if (!place.name || !place.formatted_address) {
+            console.error('Place missing required data (name or address)');
+            return;
+          }
 
-        if (typeof onSelectCallback === 'function') {
-          onSelectCallback(result);
+          const result = {
+            name: place.name,
+            address: place.formatted_address,
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng(),
+          };
+
+          // Call callback safely with type check
+          if (typeof onSelectCallback === 'function') {
+            onSelectCallback(result);
+          }
+        } catch (error) {
+          console.error('Error processing place selection:', error);
         }
       });
     }
