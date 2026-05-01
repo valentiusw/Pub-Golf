@@ -2014,7 +2014,7 @@
             if (diff < 0) return { text: Math.abs(diff) + ' under', cls: 'score-color-under' };
             return { text: diff + ' over', cls: 'score-color-over' };
         }
-        function r1(n) { return Math.round(n * 10) / 10; }
+        function r1(n) { return Math.round(n * 100) / 100; }
         function bevDisplay(hole) {
             return hole.beverage === 'Other...' ? (hole.customBeverage || 'Custom drink') : hole.beverage;
         }
@@ -2991,7 +2991,7 @@
             container.innerHTML = rows.map((row, rank) => {
                 const color = teamColor(row.ti);
                 const pos = rank < 3 ? `<span class="trophy">${medals[rank]}</span>` : `<span class="lb-pos">${rank + 1}</span>`;
-                const penNote = row.penalties > 0 ? `<span style="color:#e74c3c; font-size:11px;"> (+${row.penalties} pen)</span>` : '';
+                const penNote = row.penalties > 0 ? `<span style="color:#e74c3c; font-size:11px;"> (+${r1(row.penalties)} pen)</span>` : '';
                 const scoreEl = row.played === 0
                     ? `<div class="lb-score lb-score-none">—</div>`
                     : row.diff < 0 ? `<div class="lb-score lb-score-under">${row.diff}</div>`
