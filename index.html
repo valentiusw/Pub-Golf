@@ -1762,7 +1762,7 @@
                 <button class="tab active" id="tab-score" onclick="switchTab('score')">⛳ Hole</button>
                 <button class="tab" id="tab-leaderboard" onclick="switchTab('leaderboard')">🏆 Scores</button>
                 <button class="tab" id="tab-course" onclick="switchTab('course')">📋 Course</button>
-                <button class="tab" id="tab-penalties" onclick="switchTab('penalties')">⚡ Rewards/Penalties</button>
+                <button class="tab" id="tab-penalties" onclick="switchTab('penalties')">⚙️ Adjustments</button>
                 <button class="tab" id="tab-teams" onclick="switchTab('teams')" style="display:none;">👥 Teams</button>
             </div>
             <div id="game-tab-score">
@@ -1792,16 +1792,21 @@
                 </div>
             </div>
             <div id="game-tab-penalties" style="display:none;">
-                <!-- REWARDS AWARD SECTION -->
-                <div style="margin-bottom:20px;">
-                    <div style="font-size:14px; font-weight:600; margin-bottom:12px;">🏆 Award Reward</div>
-                    <div id="game-reward-defs-list" style="margin-bottom:12px; font-size:12px; color:rgba(250,246,238,0.5);"></div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
-                        <select id="reward-log-team" class="btn" style="padding:8px; font-size:13px;"></select>
-                        <select id="reward-log-type" class="btn" style="padding:8px; font-size:13px;"></select>
-                        <button class="btn btn-primary btn-sm" onclick="logReward()" style="padding:8px; font-size:13px;">Award</button>
+                <div class="card">
+                    <div class="card-title">🏆 Reward Reference</div>
+                    <p class="text-muted" style="margin-bottom:12px; font-size:13px;">Reward types set before the game started.</p>
+                    <div id="game-reward-defs-list"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">🏆 Award Reward</div>
+                    <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Award rewards to teams for completing missions.</p>
+                    <div class="input-row" style="margin-bottom:10px;">
+                        <select id="reward-log-team"></select>
+                        <select id="reward-log-type"></select>
+                        <button class="btn btn-success btn-sm" onclick="logReward()" style="white-space:nowrap;">+
+                            Award</button>
                     </div>
-                    <div id="reward-log-list" style="margin-bottom:16px;"></div>
+                    <div id="reward-log-list"></div>
                 </div>
                 <div class="card">
                     <div class="card-title">⚡ Penalty Reference</div>
@@ -3123,6 +3128,25 @@
         // PENALTIES TAB
         // ============================================================
         function renderPenaltiesTab() {
+            const rewardDefsEl = document.getElementById('game-reward-defs-list');
+            rewardDefsEl.innerHTML = state.rewards.length === 0
+                ? '<div class="text-muted" style="font-size:13px; padding:4px 0;">No rewards were defined for this game.</div>'
+                : state.rewards.map(r => `<div class="penalty-def-row"><span class="pname">${r.name}</span><span class="pstrokes" style="color:#5ec988;">-${r.value}</span></div>`).join('');
+
+            const rewardTeamSel = document.getElementById('reward-log-team');
+            if (local.isOrganiser) {
+                rewardTeamSel.style.display = '';
+                rewardTeamSel.innerHTML = state.teams.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+            } else {
+                rewardTeamSel.style.display = 'none';
+                rewardTeamSel.innerHTML = `<option value="${local.myTeamName}">${local.myTeamName}</option>`;
+            }
+
+            const rewardTypeSel = document.getElementById('reward-log-type');
+            rewardTypeSel.innerHTML = state.rewards.length === 0
+                ? '<option value="">No rewards defined</option>'
+                : state.rewards.map((r, i) => `<option value="${i}">${r.name} (-${r.value})</option>`).join('');
+
             const defsEl = document.getElementById('game-penalty-defs-list');
             defsEl.innerHTML = state.penalties.length === 0
                 ? '<div class="text-muted" style="font-size:13px; padding:4px 0;">No penalties were defined for this game.</div>'
@@ -3142,6 +3166,7 @@
                 ? '<option value="">No penalties defined</option>'
                 : state.penalties.map((p, i) => `<option value="${i}">${p.name} (+${p.strokes})</option>`).join('');
 
+            renderRewardLog();
             renderPenaltyLog();
         }
 
@@ -3165,6 +3190,8 @@
             patchState({ penaltyLog: state.penaltyLog });
             saveSession();
             renderPenaltyLog();
+            renderLeaderboard();
+            renderCourseProgress();
         }
 
         function removePenaltyLog(idx) {
@@ -3172,6 +3199,8 @@
             patchState({ penaltyLog: state.penaltyLog });
             saveSession();
             renderPenaltyLog();
+            renderLeaderboard();
+            renderCourseProgress();
         }
 
         function logReward() {
