@@ -1799,12 +1799,17 @@
                 </div>
                 <div class="card">
                     <div class="card-title">🏆 Award Reward</div>
-                    <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Award rewards to teams for completing missions.</p>
-                    <div class="input-row" style="margin-bottom:10px;">
-                        <select id="reward-log-team"></select>
-                        <select id="reward-log-type"></select>
-                        <button class="btn btn-success btn-sm" onclick="logReward()" style="white-space:nowrap;">+
-                            Award</button>
+                    <div id="org-award-reward-section">
+                        <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Award rewards to teams for completing missions.</p>
+                        <div class="input-row" style="margin-bottom:10px;">
+                            <select id="reward-log-team"></select>
+                            <select id="reward-log-type"></select>
+                            <button class="btn btn-success btn-sm" onclick="logReward()" style="white-space:nowrap;">+
+                                Award</button>
+                        </div>
+                    </div>
+                    <div id="player-reward-notice" style="display:none;">
+                        <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Rewards are managed by the game organizer.</p>
                     </div>
                     <div id="reward-log-list"></div>
                 </div>
@@ -3139,19 +3144,22 @@
                 ? '<div class="text-muted" style="font-size:13px; padding:4px 0;">No rewards were defined for this game.</div>'
                 : state.rewards.map(r => `<div class="penalty-def-row"><span class="pname">${r.name}</span><span class="pstrokes" style="color:#5ec988;">-${r.value}</span></div>`).join('');
 
-            const rewardTeamSel = document.getElementById('reward-log-team');
+            // Show/hide organizer-only award reward section
+            const awardSection = document.getElementById('org-award-reward-section');
+            const playerNotice = document.getElementById('player-reward-notice');
             if (local.isOrganiser) {
-                rewardTeamSel.style.display = '';
+                awardSection.style.display = '';
+                playerNotice.style.display = 'none';
+                const rewardTeamSel = document.getElementById('reward-log-team');
                 rewardTeamSel.innerHTML = state.teams.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+                const rewardTypeSel = document.getElementById('reward-log-type');
+                rewardTypeSel.innerHTML = state.rewards.length === 0
+                    ? '<option value="">No rewards defined</option>'
+                    : state.rewards.map((r, i) => `<option value="${i}">${r.name} (-${r.value})</option>`).join('');
             } else {
-                rewardTeamSel.style.display = 'none';
-                rewardTeamSel.innerHTML = `<option value="${local.myTeamName}">${local.myTeamName}</option>`;
+                awardSection.style.display = 'none';
+                playerNotice.style.display = '';
             }
-
-            const rewardTypeSel = document.getElementById('reward-log-type');
-            rewardTypeSel.innerHTML = state.rewards.length === 0
-                ? '<option value="">No rewards defined</option>'
-                : state.rewards.map((r, i) => `<option value="${i}">${r.name} (-${r.value})</option>`).join('');
 
             const defsEl = document.getElementById('game-penalty-defs-list');
             defsEl.innerHTML = state.penalties.length === 0
@@ -3210,7 +3218,8 @@
         }
 
         function logReward() {
-            const teamName = local.isOrganiser ? document.getElementById('reward-log-team').value : local.myTeamName;
+            if (!local.isOrganiser) { alert('Only organizers can award rewards.'); return; }
+            const teamName = document.getElementById('reward-log-team').value;
             const rewIdx = parseInt(document.getElementById('reward-log-type').value);
             if (!teamName) { alert('Select a team.'); return; }
             if (isNaN(rewIdx)) { alert('Select a reward.'); return; }
@@ -3229,6 +3238,7 @@
         }
 
         function removeRewardLog(idx) {
+            if (!local.isOrganiser) { alert('Only organizers can remove rewards.'); return; }
             state.rewardLog.splice(idx, 1);
             patchState({ rewardLog: state.rewardLog });
             saveSession();
