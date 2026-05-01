@@ -1297,6 +1297,31 @@
             font-weight: 700;
         }
 
+        /* REWARDS */
+        .reward-def-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .reward-def-row .rname {
+            flex: 1;
+            color: var(--cream);
+        }
+
+        .reward-def-row .rvalue {
+            min-width: 40px;
+            text-align: right;
+            color: var(--gold);
+            font-weight: 600;
+        }
+
         .penalty-summary-card {
             background: rgba(192, 57, 43, 0.07);
             border: 1px solid rgba(192, 57, 43, 0.2);
@@ -1880,7 +1905,9 @@
             holes: [],
             scores: {},
             penalties: [],
-            penaltyLog: []
+            penaltyLog: [],
+            rewards: [],
+            rewardLog: []
         };
 
         let createDraft = { members: [] };
@@ -2116,7 +2143,7 @@
 
             // Build initial game state with default hole
             const holes = [makeHole(1)];
-            const initialData = { gameName, gameStarted: false, teams: [], holes, scores: {}, penalties: [], penaltyLog: [] };
+            const initialData = { gameName, gameStarted: false, teams: [], holes, scores: {}, penalties: [], penaltyLog: [], rewards: [], rewardLog: [] };
 
             // Apply to local state immediately so holes show up
             applySnapshot(initialData);
@@ -2725,7 +2752,7 @@
                 localStorage.removeItem('pgSession');
                 sessionStorage.removeItem('pgSession');
                 local = { lobbyCode: null, isOrganiser: false, myTeamName: '', currentHoleIndex: 0 };
-                state = { gameName: '', gameStarted: false, teams: [], holes: [], scores: {}, penalties: [], penaltyLog: [] };
+                state = { gameName: '', gameStarted: false, teams: [], holes: [], scores: {}, penalties: [], penaltyLog: [], rewards: [], rewardLog: [] };
                 createDraft = { members: [] }; joinDraft = { members: [] };
                 renderDraftMembers('create'); renderDraftMembers('join');
                 updateHoleBg();
