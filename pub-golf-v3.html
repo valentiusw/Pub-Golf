@@ -1870,6 +1870,8 @@
             state.holes = toArr(data.holes);
             state.penalties = toArr(data.penalties);
             state.penaltyLog = toArr(data.penaltyLog);
+            state.rewards = toArr(data.rewards);
+            state.rewardLog = toArr(data.rewardLog);
 
             // Scores need special handling: each member's array may have null gaps
             state.scores = {};
@@ -2628,10 +2630,16 @@
         function teamTotalPenalties(teamName) {
             return state.penaltyLog.filter(p => p.teamName === teamName).reduce((s, p) => s + p.strokes, 0);
         }
+        function teamTotalRewards(teamName) {
+            return state.rewardLog.reduce((sum, r) => r.teamName === teamName ? sum + r.strokes : sum, 0);
+        }
+
         function teamTotalScore(teamName) {
             let total = 0;
             for (let i = 0; i < state.holes.length; i++) { const avg = teamHoleAvg(teamName, i); if (avg !== null) total += avg; }
-            return total + teamTotalPenalties(teamName);
+            const penalties = teamTotalPenalties(teamName);
+            const rewards = teamTotalRewards(teamName);
+            return total - penalties + rewards;
         }
         function teamTotalPar(teamName) {
             let total = 0;
@@ -2749,8 +2757,8 @@
             if (state.teams.length === 0) { container.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>No teams yet.</p></div>'; return; }
             const rows = state.teams.map((team, ti) => {
                 const total = teamTotalScore(team.name), par = teamTotalPar(team.name);
-                const played = holesPlayed(team.name), penalties = teamTotalPenalties(team.name);
-                return { team, ti, total, par, played, diff: r1(total - par), penalties };
+                const played = holesPlayed(team.name), penalties = teamTotalPenalties(team.name), rewards = teamTotalRewards(team.name);
+                return { team, ti, total, par, played, diff: r1(total - par), penalties, rewards };
             }).sort((a, b) => {
                 if (a.played === 0 && b.played === 0) return 0;
                 if (a.played === 0) return 1; if (b.played === 0) return -1;
@@ -2760,7 +2768,9 @@
             container.innerHTML = rows.map((row, rank) => {
                 const color = teamColor(row.ti);
                 const pos = rank < 3 ? `<span class="trophy">${medals[rank]}</span>` : `<span class="lb-pos">${rank + 1}</span>`;
-                const penNote = row.penalties > 0 ? `<span style="color:#e74c3c; font-size:11px;"> (+${row.penalties} pen)</span>` : '';
+                const penNote = row.penalties > 0 ? `<span style="color:#e74c3c; font-size:11px;"> (+${r1(row.penalties)} pen)</span>` : '';
+                const rewNote = row.rewards > 0 ? `<span style="color:#5ec988; font-size:11px;"> (-${r1(row.rewards)} reward)</span>` : '';
+                const note = penNote + rewNote;
                 const scoreEl = row.played === 0
                     ? `<div class="lb-score lb-score-none">—</div>`
                     : row.diff < 0 ? `<div class="lb-score lb-score-under">${row.diff}</div>`
@@ -2772,7 +2782,7 @@
                     <div class="lb-row" style="border-left:3px solid ${color}; border-radius:0; margin-bottom:0;">
                         <div style="text-align:center;">${pos}</div>
                         <div>
-                            <div class="lb-name">${row.team.name}${penNote}</div>
+                            <div class="lb-name">${row.team.name}${note}</div>
                             <div class="lb-holes">${toArr(row.team.members).length} members · ${row.played}/${state.holes.length} holes</div>
                         </div>
                         ${scoreEl}
@@ -2810,6 +2820,11 @@
                 ? '<div class="text-muted" style="font-size:13px; padding:4px 0;">No penalties were defined for this game.</div>'
                 : state.penalties.map(p => `<div class="penalty-def-row"><span class="pname">${p.name}</span><span class="pstrokes">+${p.strokes}</span></div>`).join('');
 
+            const rewardDefsEl = document.getElementById('game-reward-defs-list');
+            rewardDefsEl.innerHTML = state.rewards.length === 0
+                ? '<span style="color:rgba(250,246,238,0.4);">No rewards defined for this game.</span>'
+                : state.rewards.map(r => `<div style="display:inline-block; margin-right:12px;"><strong style="color:#5ec988;">-${r.value}</strong> ${r.name}</div>`).join('');
+
             const teamSel = document.getElementById('pen-log-team');
             if (local.isOrganiser) {
                 teamSel.style.display = '';
@@ -2824,7 +2839,22 @@
                 ? '<option value="">No penalties defined</option>'
                 : state.penalties.map((p, i) => `<option value="${i}">${p.name} (+${p.strokes})</option>`).join('');
 
+            const rewardTeamSel = document.getElementById('reward-log-team');
+            if (local.isOrganiser) {
+                rewardTeamSel.style.display = '';
+                rewardTeamSel.innerHTML = state.teams.map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+            } else {
+                rewardTeamSel.style.display = 'none';
+                rewardTeamSel.innerHTML = `<option value="${local.myTeamName}">${local.myTeamName}</option>`;
+            }
+
+            const rewardTypeSel = document.getElementById('reward-log-type');
+            rewardTypeSel.innerHTML = state.rewards.length === 0
+                ? '<option value="">No rewards defined</option>'
+                : state.rewards.map((r, i) => `<option value="${i}">${r.name} (-${r.value})</option>`).join('');
+
             renderPenaltyLog();
+            renderRewardLog();
         }
 
         function logPenalty() {
@@ -2909,8 +2939,8 @@
             // Sort teams for ranking
             const rows = state.teams.map((team, ti) => {
                 const total = teamTotalScore(team.name), par = teamTotalPar(team.name);
-                const played = holesPlayed(team.name), penalties = teamTotalPenalties(team.name);
-                return { team, ti, total, par, played, diff: r1(total - par), penalties };
+                const played = holesPlayed(team.name), penalties = teamTotalPenalties(team.name), rewards = teamTotalRewards(team.name);
+                return { team, ti, total, par, played, diff: r1(total - par), penalties, rewards };
             }).sort((a, b) => {
                 if (a.played === 0 && b.played === 0) return 0;
                 if (a.played === 0) return 1; if (b.played === 0) return -1;
@@ -2950,7 +2980,9 @@
                 lbContainer.innerHTML = rows.map((row, rank) => {
                     const color = teamColor(row.ti);
                     const pos = rank < 3 ? `<span class="trophy">${medals[rank]}</span>` : `<span class="lb-pos">${rank + 1}</span>`;
-                    const penNote = row.penalties > 0 ? `<span style="color:#e74c3c; font-size:11px;"> +${r1(row.penalties)} pen</span>` : '';
+                    const penNote = row.penalties > 0 ? `<span style="color:#e74c3c; font-size:11px;"> (+${r1(row.penalties)} pen)</span>` : '';
+                    const rewNote = row.rewards > 0 ? `<span style="color:#5ec988; font-size:11px;"> (-${r1(row.rewards)} reward)</span>` : '';
+                    const note = penNote + rewNote;
                     const scoreEl = row.diff < 0 ? `<div class="lb-score lb-score-under">${row.diff}</div>`
                         : row.diff > 0 ? `<div class="lb-score lb-score-over">+${row.diff}</div>`
                             : `<div class="lb-score lb-score-even">E</div>`;
@@ -2976,7 +3008,7 @@
                         <div class="lb-row" style="border-left:3px solid ${color}; border-radius:0; margin-bottom:0;">
                             <div style="text-align:center;">${pos}</div>
                             <div>
-                                <div class="lb-name">${row.team.name}${penNote}</div>
+                                <div class="lb-name">${row.team.name}${note}</div>
                                 <div class="lb-holes">${members.length} members · ${row.played}/${state.holes.length} holes</div>
                             </div>
                             ${scoreEl}
