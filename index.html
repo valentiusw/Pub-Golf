@@ -1959,6 +1959,8 @@
             state.holes = toArr(data.holes);
             state.penalties = toArr(data.penalties);
             state.penaltyLog = toArr(data.penaltyLog);
+            state.rewards = toArr(data.rewards);
+            state.rewardLog = toArr(data.rewardLog);
 
             // Scores need special handling: each member's array may have null gaps
             state.scores = {};
@@ -2211,6 +2213,9 @@
             joinDraft.members.forEach(m => { scores[teamName][m.name] = new Array(holes.length).fill(null); });
 
             await db.ref('games/' + code).update({ teams: updatedTeams, scores });
+
+            // Clear old state before joining new game
+            applySnapshot(gameData);
 
             local.lobbyCode = code;
             local.isOrganiser = false;
@@ -3311,7 +3316,9 @@
                 holes: [],
                 scores: {},
                 penalties: [],
-                penaltyLog: []
+                penaltyLog: [],
+                rewards: [],
+                rewardLog: []
             };
             localStorage.removeItem('pgSession');
             sessionStorage.removeItem('pgSession');
