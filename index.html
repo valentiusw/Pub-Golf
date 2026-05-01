@@ -1724,7 +1724,7 @@
                 <button class="tab active" id="tab-score" onclick="switchTab('score')">⛳ Hole</button>
                 <button class="tab" id="tab-leaderboard" onclick="switchTab('leaderboard')">🏆 Scores</button>
                 <button class="tab" id="tab-course" onclick="switchTab('course')">📋 Course</button>
-                <button class="tab" id="tab-penalties" onclick="switchTab('penalties')">⚡ Penalties</button>
+                <button class="tab" id="tab-penalties" onclick="switchTab('penalties')">⚡ Rewards/Penalties</button>
                 <button class="tab" id="tab-teams" onclick="switchTab('teams')" style="display:none;">👥 Teams</button>
             </div>
             <div id="game-tab-score">
@@ -1754,6 +1754,17 @@
                 </div>
             </div>
             <div id="game-tab-penalties" style="display:none;">
+                <!-- REWARDS AWARD SECTION -->
+                <div style="margin-bottom:20px;">
+                    <div style="font-size:14px; font-weight:600; margin-bottom:12px;">🏆 Award Reward</div>
+                    <div id="game-reward-defs-list" style="margin-bottom:12px; font-size:12px; color:rgba(250,246,238,0.5);"></div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px;">
+                        <select id="reward-log-team" class="btn" style="padding:8px; font-size:13px;"></select>
+                        <select id="reward-log-type" class="btn" style="padding:8px; font-size:13px;"></select>
+                        <button class="btn btn-primary btn-sm" onclick="logReward()" style="padding:8px; font-size:13px;">Award</button>
+                    </div>
+                    <div id="reward-log-list" style="margin-bottom:16px;"></div>
+                </div>
                 <div class="card">
                     <div class="card-title">⚡ Penalty Reference</div>
                     <p class="text-muted" style="margin-bottom:12px; font-size:13px;">Penalty types set before the game
@@ -2185,6 +2196,7 @@
             const firstBody = document.getElementById('hole-body-0');
             if (firstBody && firstBody.style.display !== 'block') toggleHole(0);
             renderOrgPenaltySetup();
+            renderOrgRewardSetup();
         }
 
         // Organizer team creation
@@ -2646,6 +2658,37 @@
             renderOrgPenaltySetup();
         }
 
+        function renderOrgRewardSetup() {
+            const el = document.getElementById('org-reward-defs-list');
+            if (!el) return;
+            el.innerHTML = state.rewards.length === 0
+                ? '<div class="text-muted" style="font-size:13px; padding:4px 0;">No rewards added yet.</div>'
+                : state.rewards.map((r, i) => `<div class="reward-def-row"><span class="rname">${r.name}</span><span class="rvalue">-${r.value}</span><button class="btn btn-danger btn-sm btn-icon" onclick="removeRewardDefLobby(${i})" style="margin-left:auto;">✕</button></div>`).join('');
+        }
+
+        function addRewardDefLobby() {
+            const nameEl = document.getElementById('org-reward-name');
+            const valueEl = document.getElementById('org-reward-value');
+            const name = nameEl.value.trim();
+            const value = parseInt(valueEl.value) || 0;
+            if (!name) { alert('Please enter a reward name.'); return; }
+            if (value <= 0) { alert('Reward value must be greater than 0.'); return; }
+            state.rewards.push({ name, value });
+            nameEl.value = ''; valueEl.value = '1';
+            patchState({ rewards: state.rewards });
+            saveSession();
+            renderOrgRewardSetup();
+        }
+
+        function removeRewardDefLobby(idx) {
+            const removed = state.rewards[idx].name;
+            state.rewards.splice(idx, 1);
+            state.rewardLog = state.rewardLog.filter(r => r.rewardName !== removed);
+            patchState({ rewards: state.rewards, rewardLog: state.rewardLog });
+            saveSession();
+            renderOrgRewardSetup();
+        }
+
         // ============================================================
         // START GAME
         // ============================================================
@@ -3085,6 +3128,51 @@
             patchState({ penaltyLog: state.penaltyLog });
             saveSession();
             renderPenaltyLog();
+        }
+
+        function logReward() {
+            const teamName = local.isOrganiser ? document.getElementById('reward-log-team').value : local.myTeamName;
+            const rewIdx = parseInt(document.getElementById('reward-log-type').value);
+            if (!teamName) { alert('Select a team.'); return; }
+            if (isNaN(rewIdx)) { alert('Select a reward.'); return; }
+            if (!state.rewards[rewIdx]) { alert('Invalid reward.'); return; }
+            const rew = state.rewards[rewIdx];
+            state.rewardLog.push({
+                teamName,
+                rewardName: rew.name,
+                strokes: rew.value
+            });
+            patchState({ rewardLog: state.rewardLog });
+            saveSession();
+            renderRewardLog();
+            renderLeaderboard();
+            renderCourseProgress();
+        }
+
+        function removeRewardLog(idx) {
+            state.rewardLog.splice(idx, 1);
+            patchState({ rewardLog: state.rewardLog });
+            saveSession();
+            renderRewardLog();
+            renderLeaderboard();
+            renderCourseProgress();
+        }
+
+        function renderRewardLog() {
+            const container = document.getElementById('reward-log-list');
+            if (!container) return;
+            if (state.rewardLog.length === 0) { container.innerHTML = '<div class="text-muted" style="font-size:13px; padding:4px 0;">No rewards awarded yet.</div>'; return; }
+            container.innerHTML = state.rewardLog.map((r, i) => {
+                const ti = state.teams.findIndex(t => t.name === r.teamName);
+                const color = ti >= 0 ? teamColor(ti) : '#888';
+                const canRM = local.isOrganiser;
+                return `<div class="penalty-log-row" style="border-left:3px solid ${color};">
+                    <span class="pteam">${r.teamName}</span>
+                    <span class="ppenalty">${r.rewardName}</span>
+                    <span class="pstroke-badge" style="color:#5ec988;">-${r1(r.strokes)}</span>
+                    ${canRM ? `<button class="btn btn-danger btn-sm btn-icon" onclick="removeRewardLog(${i})">✕</button>` : ''}
+                </div>`;
+            }).join('');
         }
 
         function renderPenaltyLog() {
