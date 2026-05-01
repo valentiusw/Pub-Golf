@@ -1856,7 +1856,9 @@
             holes: [],
             scores: {},
             penalties: [],
-            penaltyLog: []
+            penaltyLog: [],
+            rewards: [],
+            rewardLog: []
         };
 
         let createDraft = { members: [] };
@@ -2092,7 +2094,7 @@
 
             // Build initial game state with default hole
             const holes = [makeHole(1)];
-            const initialData = { gameName, gameStarted: false, teams: [], holes, scores: {}, penalties: [], penaltyLog: [] };
+            const initialData = { gameName, gameStarted: false, teams: [], holes, scores: {}, penalties: [], penaltyLog: [], rewards: [], rewardLog: [] };
 
             // Apply to local state immediately so holes show up
             applySnapshot(initialData);
@@ -2669,7 +2671,7 @@
                 localStorage.removeItem('pgSession');
                 sessionStorage.removeItem('pgSession');
                 local = { lobbyCode: null, isOrganiser: false, myTeamName: '', currentHoleIndex: 0 };
-                state = { gameName: '', gameStarted: false, teams: [], holes: [], scores: {}, penalties: [], penaltyLog: [] };
+                state = { gameName: '', gameStarted: false, teams: [], holes: [], scores: {}, penalties: [], penaltyLog: [], rewards: [], rewardLog: [] };
                 createDraft = { members: [] }; joinDraft = { members: [] };
                 renderDraftMembers('create'); renderDraftMembers('join');
                 updateHoleBg();
