@@ -2942,10 +2942,13 @@
         function teamTotalPenalties(teamName) {
             return state.penaltyLog.filter(p => p.teamName === teamName).reduce((s, p) => s + p.strokes, 0);
         }
+        function teamTotalRewards(teamName) {
+            return state.rewardLog.filter(r => r.teamName === teamName).reduce((s, r) => s + r.strokes, 0);
+        }
         function teamTotalScore(teamName) {
             let total = 0;
             for (let i = 0; i < state.holes.length; i++) { const avg = teamHoleAvg(teamName, i); if (avg !== null) total += avg; }
-            return total + teamTotalPenalties(teamName);
+            return total + teamTotalPenalties(teamName) - teamTotalRewards(teamName);
         }
         function teamTotalPar(teamName) {
             let total = 0;
@@ -3063,8 +3066,8 @@
             if (state.teams.length === 0) { container.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>No teams yet.</p></div>'; return; }
             const rows = state.teams.map((team, ti) => {
                 const total = teamTotalScore(team.name), par = teamTotalPar(team.name);
-                const played = holesPlayed(team.name), penalties = teamTotalPenalties(team.name);
-                return { team, ti, total, par, played, diff: r1(total - par), penalties };
+                const played = holesPlayed(team.name), penalties = teamTotalPenalties(team.name), rewards = teamTotalRewards(team.name);
+                return { team, ti, total, par, played, diff: r1(total - par), penalties, rewards };
             }).sort((a, b) => {
                 if (a.played === 0 && b.played === 0) return 0;
                 if (a.played === 0) return 1; if (b.played === 0) return -1;
@@ -3075,6 +3078,7 @@
                 const color = teamColor(row.ti);
                 const pos = rank < 3 ? `<span class="trophy">${medals[rank]}</span>` : `<span class="lb-pos">${rank + 1}</span>`;
                 const penNote = row.penalties > 0 ? `<span style="color:#e74c3c; font-size:11px;"> (+${r1(row.penalties)} pen)</span>` : '';
+                const rewNote = row.rewards > 0 ? `<span style="color:#5ec988; font-size:11px;"> (-${r1(row.rewards)} reward)</span>` : '';
                 const scoreEl = row.played === 0
                     ? `<div class="lb-score lb-score-none">—</div>`
                     : row.diff < 0 ? `<div class="lb-score lb-score-under">${row.diff}</div>`
@@ -3086,7 +3090,7 @@
                     <div class="lb-row" style="border-left:3px solid ${color}; border-radius:0; margin-bottom:0;">
                         <div style="text-align:center;">${pos}</div>
                         <div>
-                            <div class="lb-name">${row.team.name}${penNote}</div>
+                            <div class="lb-name">${row.team.name}${penNote}${rewNote}</div>
                             <div class="lb-holes">${toArr(row.team.members).length} members · ${row.played}/${state.holes.length} holes</div>
                         </div>
                         ${scoreEl}
@@ -3337,6 +3341,7 @@
                     const color = teamColor(row.ti);
                     const pos = rank < 3 ? `<span class="trophy">${medals[rank]}</span>` : `<span class="lb-pos">${rank + 1}</span>`;
                     const penNote = row.penalties > 0 ? `<span style="color:#e74c3c; font-size:11px;"> +${r1(row.penalties)} pen</span>` : '';
+                    const rewNote = row.rewards > 0 ? `<span style="color:#5ec988; font-size:11px;"> -${r1(row.rewards)} reward</span>` : '';
                     const scoreEl = row.diff < 0 ? `<div class="lb-score lb-score-under">${row.diff}</div>`
                         : row.diff > 0 ? `<div class="lb-score lb-score-over">+${row.diff}</div>`
                             : `<div class="lb-score lb-score-even">E</div>`;
@@ -3362,7 +3367,7 @@
                         <div class="lb-row" style="border-left:3px solid ${color}; border-radius:0; margin-bottom:0;">
                             <div style="text-align:center;">${pos}</div>
                             <div>
-                                <div class="lb-name">${row.team.name}${penNote}</div>
+                                <div class="lb-name">${row.team.name}${penNote}${rewNote}</div>
                                 <div class="lb-holes">${members.length} members · ${row.played}/${state.holes.length} holes</div>
                             </div>
                             ${scoreEl}
