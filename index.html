@@ -1697,6 +1697,20 @@
                 </div>
                 <div id="org-penalty-defs-list"></div>
             </div>
+            <div class="card">
+                <div class="card-title">🏆 Reward Setup</div>
+                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Define reward types before the game
+                    starts. Locked once the game begins.</p>
+                <div class="input-row" style="margin-bottom:10px;">
+                    <input type="text" id="org-reward-name" placeholder="Reward name (e.g. Hard mission)" maxlength="40"
+                        onkeydown="if(event.key==='Enter') addRewardDefLobby()">
+                    <input type="number" id="org-reward-value" placeholder="+points" min="1" max="20" class="narrow"
+                        style="flex:0 0 90px;" onkeydown="if(event.key==='Enter') addRewardDefLobby()">
+                    <button class="btn btn-success btn-sm" onclick="addRewardDefLobby()" style="white-space:nowrap;">+
+                        Add</button>
+                </div>
+                <div id="org-reward-defs-list"></div>
+            </div>
             <button class="btn btn-primary" onclick="startGame()">🏌️ Start Game</button>
         </div>
 
