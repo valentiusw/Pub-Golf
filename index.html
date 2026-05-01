@@ -1728,7 +1728,7 @@
                 <div class="input-row" style="margin-bottom:10px;">
                     <input type="text" id="org-reward-name" placeholder="Reward name (e.g. Hard mission)" maxlength="40"
                         onkeydown="if(event.key==='Enter') addRewardDefLobby()">
-                    <input type="number" id="org-reward-value" placeholder="-sips" min="1" max="20" class="narrow"
+                    <input type="number" id="org-reward-value" placeholder="-sips" min="1" max="20" value="1" class="narrow"
                         style="flex:0 0 90px;" onkeydown="if(event.key==='Enter') addRewardDefLobby()">
                     <button class="btn btn-success btn-sm" onclick="addRewardDefLobby()" style="white-space:nowrap;">+
                         Add</button>
@@ -2714,10 +2714,11 @@
         function addRewardDefLobby() {
             const nameEl = document.getElementById('org-reward-name');
             const valueEl = document.getElementById('org-reward-value');
+            if (!nameEl || !valueEl) { alert('Reward inputs not found.'); return; }
             const name = nameEl.value.trim();
-            const value = parseInt(valueEl.value) || 0;
+            const value = parseInt(valueEl.value, 10);
             if (!name) { alert('Please enter a reward name.'); return; }
-            if (value <= 0) { alert('Reward value must be greater than 0.'); return; }
+            if (!value || value <= 0) { alert('Reward value must be a positive number.'); return; }
             state.rewards.push({ name, value });
             nameEl.value = ''; valueEl.value = '1';
             patchState({ rewards: state.rewards });
