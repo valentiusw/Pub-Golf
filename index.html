@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pub Golf ⛳🍺</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
@@ -1674,7 +1675,8 @@
             </div>
             <div class="card">
                 <div class="card-title">🎯 Your Team (Optional)</div>
-                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Create a team to play as the organizer, or leave empty to just referee.</p>
+                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Create a team to play as the
+                    organizer, or leave empty to just referee.</p>
                 <div id="org-my-team-display"></div>
                 <div id="org-my-team-form" style="display:none;">
                     <div class="form-group">
@@ -1690,21 +1692,27 @@
                             onkeydown="if(event.key==='Enter') addOrgTeamMember()">
                         <button class="btn btn-secondary btn-sm" onclick="addOrgTeamMember()">+ Add</button>
                     </div>
-                    <div style="font-size:11px; color:rgba(250,246,238,0.35); margin-top:5px;">HCP = handicap (extra sips per hole)</div>
+                    <div style="font-size:11px; color:rgba(250,246,238,0.35); margin-top:5px;">HCP = handicap (extra
+                        sips per hole)</div>
                     <div id="org-my-members-list" style="margin-top:12px;"></div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;">
                         <button class="btn btn-secondary" onclick="cancelOrgTeam()">Cancel</button>
                         <button class="btn btn-primary" onclick="saveOrgTeam()">Save Team</button>
                     </div>
                 </div>
-                <button class="btn btn-secondary" id="org-create-team-btn" style="width:100%;" onclick="startOrgTeamForm()">+ Create Your Team</button>
+                <button class="btn btn-secondary" id="org-create-team-btn" style="width:100%;"
+                    onclick="startOrgTeamForm()">+ Create Your Team</button>
             </div>
             <div class="card">
                 <div class="card-title">⛳ Hole Setup</div>
                 <div style="display:flex; gap:8px; margin-bottom:12px;">
-                    <button class="btn btn-secondary btn-sm" onclick="downloadHoleTemplate()" style="flex:1;">📥 Download Template</button>
-                    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('hole-excel-upload').click()" style="flex:1;">📤 Upload Excel</button>
-                    <input type="file" id="hole-excel-upload" accept=".xlsx,.xls" style="display:none;" onchange="uploadHoleExcel(event)">
+                    <button class="btn btn-secondary btn-sm" onclick="downloadHoleTemplate()" style="flex:1;">📥
+                        Download Template</button>
+                    <button class="btn btn-secondary btn-sm"
+                        onclick="document.getElementById('hole-excel-upload').click()" style="flex:1;">📤 Upload
+                        Excel</button>
+                    <input type="file" id="hole-excel-upload" accept=".xlsx,.xls" style="display:none;"
+                        onchange="uploadHoleExcel(event)">
                 </div>
                 <div id="org-holes-setup"></div>
             </div>
@@ -1724,12 +1732,13 @@
             </div>
             <div class="card">
                 <div class="card-title">🏆 Reward Setup</div>
-                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Define reward types before the game starts. Locked once the game begins.</p>
+                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Define reward types before the game
+                    starts. Locked once the game begins.</p>
                 <div class="input-row" style="margin-bottom:10px;">
                     <input type="text" id="org-reward-name" placeholder="Reward name (e.g. Hard mission)" maxlength="40"
                         onkeydown="if(event.key==='Enter') addRewardDefLobby()">
-                    <input type="number" id="org-reward-value" placeholder="-sips" min="1" max="20" value="1" class="narrow"
-                        style="flex:0 0 90px;" onkeydown="if(event.key==='Enter') addRewardDefLobby()">
+                    <input type="number" id="org-reward-value" placeholder="-sips" min="1" max="20" value="1"
+                        class="narrow" style="flex:0 0 90px;" onkeydown="if(event.key==='Enter') addRewardDefLobby()">
                     <button class="btn btn-success btn-sm" onclick="addRewardDefLobby()" style="white-space:nowrap;">+
                         Add</button>
                 </div>
@@ -1761,7 +1770,6 @@
             <div class="tab-bar">
                 <button class="tab active" id="tab-score" onclick="switchTab('score')">⛳ Hole</button>
                 <button class="tab" id="tab-leaderboard" onclick="switchTab('leaderboard')">🏆 Scores</button>
-                <button class="tab" id="tab-course" onclick="switchTab('course')">📋 Course</button>
                 <button class="tab" id="tab-penalties" onclick="switchTab('penalties')">⚙️ Adjustments</button>
                 <button class="tab" id="tab-teams" onclick="switchTab('teams')" style="display:none;">👥 Teams</button>
             </div>
@@ -1785,22 +1793,18 @@
                 </div>
                 <div id="game-course-progress"></div>
             </div>
-            <div id="game-tab-course" style="display:none;">
-                <div class="card">
-                    <div class="card-title">📋 Course Card</div>
-                    <div id="course-content"></div>
-                </div>
-            </div>
             <div id="game-tab-penalties" style="display:none;">
                 <div class="card">
                     <div class="card-title">🏆 Reward Reference</div>
-                    <p class="text-muted" style="margin-bottom:12px; font-size:13px;">Reward types set before the game started.</p>
+                    <p class="text-muted" style="margin-bottom:12px; font-size:13px;">Reward types set before the game
+                        started.</p>
                     <div id="game-reward-defs-list"></div>
                 </div>
                 <div class="card">
-                    <div class="card-title">🏆 Award Reward</div>
+                    <div class="card-title">🏆 Reward Log</div>
                     <div id="org-award-reward-section">
-                        <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Award rewards to teams for completing missions.</p>
+                        <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Award rewards to teams for
+                            completing missions.</p>
                         <div class="input-row" style="margin-bottom:10px;">
                             <select id="reward-log-team"></select>
                             <select id="reward-log-type"></select>
@@ -1809,7 +1813,8 @@
                         </div>
                     </div>
                     <div id="player-reward-notice" style="display:none;">
-                        <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Rewards are managed by the game organizer.</p>
+                        <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Rewards are managed by the
+                            game organizer.</p>
                     </div>
                     <div id="reward-log-list"></div>
                 </div>
@@ -2046,7 +2051,6 @@
                     if (activeTabEl) {
                         const tab = activeTabEl.id.replace('tab-', '');
                         if (tab === 'leaderboard') { renderLeaderboard(); renderCourseProgress(); }
-                        else if (tab === 'course') renderCourseTab();
                         else if (tab === 'penalties') renderPenaltiesTab();
                         else if (tab === 'teams') renderTeamsManage();
                     }
@@ -2793,13 +2797,12 @@
         // TAB SWITCHING
         // ============================================================
         function switchTab(tab) {
-            ['score', 'leaderboard', 'course', 'penalties', 'teams'].forEach(t => {
+            ['score', 'leaderboard', 'penalties', 'teams'].forEach(t => {
                 document.getElementById('game-tab-' + t).style.display = (t === tab) ? 'block' : 'none';
                 const btn = document.getElementById('tab-' + t);
                 if (btn) btn.classList.toggle('active', t === tab);
             });
             if (tab === 'leaderboard') { renderLeaderboard(); renderCourseProgress(); }
-            if (tab === 'course') renderCourseTab();
             if (tab === 'penalties') renderPenaltiesTab();
             if (tab === 'teams') renderTeamsManage();
         }
@@ -2997,7 +3000,7 @@
         function renderCourseProgress() {
             const container = document.getElementById('game-course-progress');
             if (!container || state.teams.length === 0) { if (container) container.innerHTML = ''; return; }
-            const hdrCols = state.holes.map((h, i) => `<th class="${i === local.currentHoleIndex ? 'prog-cur' : ''}">H${h.number}${h.isWater ? '🌊' : h.isBunker ? '⛱️' : ''}${h.location ? '<br><span style="font-size:9px;opacity:0.6;">' + h.location.slice(0, 6) + '</span>' : ''}</th>`).join('');
+            const hdrCols = state.holes.map((h, i) => `<th class="${i === local.currentHoleIndex ? 'prog-cur' : ''}">H${h.number}</th>`).join('');
             let html = `<div class="section-heading">Course Progress</div><div class="progress-wrap"><table class="progress-table">
                 <thead><tr><th class="lft">Team / Player</th>${hdrCols}<th class="total-col">Score</th><th class="total-col" style="color:rgba(231,76,60,0.8);">+Pen</th><th class="total-col">Total</th></tr></thead><tbody>`;
 
