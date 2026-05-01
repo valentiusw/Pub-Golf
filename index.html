@@ -1737,9 +1737,9 @@
                 <div class="input-row" style="margin-bottom:10px;">
                     <input type="text" id="org-reward-name" placeholder="Reward name (e.g. Hard mission)" maxlength="40"
                         onkeydown="if(event.key==='Enter') addRewardDefLobby()">
-                    <input type="number" id="org-reward-value" placeholder="-sips" min="1" max="20" value="1"
+                    <input type="number" id="org-reward-value" placeholder="-sips" min="1" max="20"
                         class="narrow" style="flex:0 0 90px;" onkeydown="if(event.key==='Enter') addRewardDefLobby()">
-                    <button class="btn btn-success btn-sm" onclick="addRewardDefLobby()" style="white-space:nowrap;">+
+                    <button class="btn btn-secondary btn-sm" onclick="addRewardDefLobby()" style="white-space:nowrap;">+
                         Add</button>
                 </div>
                 <div id="org-reward-defs-list"></div>
@@ -2595,13 +2595,63 @@
 
         // Excel template download
         function downloadHoleTemplate() {
-            const headers = ['Location / Bar Name', 'Beverage', 'Par (sips)', 'Hazard', 'Special Rule'];
-            const exampleRow = ['The Crown', '🍺 Pint', 4, '', 'Left hand only'];
-            const data = [headers, exampleRow, ...Array(17).fill(null).map(() => ['', '', '', '', ''])];
+            const headers = ['Location / Bar Name', 'Beverage', 'Par (sips)', 'Hazard', 'Special Rule', 'Penalty Name', 'Penalty Value', 'Reward Name', 'Reward Value'];
+            const exampleRow = ['The Crown', '🍺 Pint', 4, '', 'Left hand only', 'Spill', 2, 'Hard mission', 3];
+            const data = [headers, exampleRow, ...Array(17).fill(null).map(() => ['', '', '', '', '', '', '', '', ''])];
             const worksheet = XLSX.utils.aoa_to_sheet(data);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Holes');
             XLSX.writeFile(workbook, 'hole-template.xlsx');
+        }
+
+        // Fuzzy string matching function using Levenshtein distance
+        function fuzzyMatch(input, options, threshold = 0.6) {
+            const inputLower = input.toLowerCase().trim();
+            let bestMatch = null;
+            let bestScore = 0;
+
+            options.forEach(opt => {
+                // Strip emoji from beverage name for comparison
+                const cleanOpt = opt.replace(/^[^\w\s]*\s*/, '').toLowerCase();
+                const score = calculateSimilarity(inputLower, cleanOpt);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = opt;
+                }
+            });
+
+            return bestScore >= threshold ? bestMatch : null;
+        }
+
+        // Calculate string similarity (0 to 1)
+        function calculateSimilarity(str1, str2) {
+            const longer = str1.length > str2.length ? str1 : str2;
+            const shorter = str1.length > str2.length ? str2 : str1;
+            if (longer.length === 0) return 1.0;
+            const editDistance = getEditDistance(longer, shorter);
+            return (longer.length - editDistance) / longer.length;
+        }
+
+        // Calculate edit distance (Levenshtein)
+        function getEditDistance(s1, s2) {
+            const costs = [];
+            for (let k = 0; k <= s1.length; k++) {
+                let lastValue = k;
+                for (let k2 = 0; k2 <= s2.length; k2++) {
+                    if (k === 0) {
+                        costs[k2] = k2;
+                    } else if (k2 > 0) {
+                        let newValue = costs[k2 - 1];
+                        if (s1.charAt(k - 1) !== s2.charAt(k2 - 1)) {
+                            newValue = Math.min(Math.min(newValue, lastValue), costs[k2]) + 1;
+                        }
+                        costs[k2 - 1] = lastValue;
+                        lastValue = newValue;
+                    }
+                }
+                if (k > 0) costs[s2.length] = lastValue;
+            }
+            return costs[s2.length];
         }
 
         // Parse and upload Excel file
@@ -2618,6 +2668,9 @@
                     const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                     const newHoles = [];
+                    const newPenalties = [...state.penalties];
+                    const newRewards = [...state.rewards];
+
                     for (let i = 1; i < rows.length && newHoles.length < 18; i++) {
                         const row = rows[i];
                         if (!row || row.every(cell => !cell || (typeof cell === 'string' && !cell.trim()))) continue;
@@ -2627,17 +2680,42 @@
                         const parInput = parseInt(row[2]) || 4;
                         const hazardInput = (row[3] || '').toString().toLowerCase().trim();
                         const specialRule = (row[4] || '').toString().trim();
+                        const penaltyName = (row[5] || '').toString().trim();
+                        const penaltyValue = parseInt(row[6]) || 0;
+                        const rewardName = (row[7] || '').toString().trim();
+                        const rewardValue = parseInt(row[8]) || 0;
 
-                        // Match beverage: case-insensitive exact match, else use as custom
+                        // Match beverage: exact match, then fuzzy match, else use as custom
                         let beverage = BEVERAGES[0];
                         let customBeverage = '';
                         if (beverageInput) {
-                            const match = BEVERAGES.find(b => b.toLowerCase() === beverageInput.toLowerCase());
-                            if (match) {
-                                beverage = match;
+                            // Try exact match first
+                            const exactMatch = BEVERAGES.find(b => b.toLowerCase() === beverageInput.toLowerCase());
+                            if (exactMatch) {
+                                beverage = exactMatch;
                             } else {
-                                beverage = 'Other...';
-                                customBeverage = beverageInput;
+                                // Try fuzzy match with 60% threshold
+                                const fuzzyMatchResult = fuzzyMatch(beverageInput, BEVERAGES, 0.6);
+                                if (fuzzyMatchResult) {
+                                    beverage = fuzzyMatchResult;
+                                } else {
+                                    beverage = 'Other...';
+                                    customBeverage = beverageInput;
+                                }
+                            }
+                        }
+
+                        // Add penalty if provided and not already exists
+                        if (penaltyName && penaltyValue > 0) {
+                            if (!newPenalties.find(p => p.name === penaltyName)) {
+                                newPenalties.push({ name: penaltyName, strokes: penaltyValue });
+                            }
+                        }
+
+                        // Add reward if provided and not already exists
+                        if (rewardName && rewardValue > 0) {
+                            if (!newRewards.find(r => r.name === rewardName)) {
+                                newRewards.push({ name: rewardName, value: rewardValue });
                             }
                         }
 
@@ -2665,10 +2743,12 @@
                         });
                     });
 
-                    patchState({ holes: state.holes, scores: state.scores });
+                    patchState({ holes: state.holes, scores: state.scores, penalties: newPenalties, rewards: newRewards });
                     saveSession();
                     renderHolesSetup();
-                    alert(`✅ Loaded ${newHoles.length} hole${newHoles.length === 1 ? '' : 's'}`);
+                    renderOrgPenaltySetup();
+                    renderOrgRewardSetup();
+                    alert(`✅ Loaded ${newHoles.length} hole${newHoles.length === 1 ? '' : 's'}${newPenalties.length > state.penalties.length ? ', ' + (newPenalties.length - state.penalties.length) + ' penalty(ies)' : ''}${newRewards.length > state.rewards.length ? ', ' + (newRewards.length - state.rewards.length) + ' reward(s)' : ''}`);
                     // Reset file input
                     event.target.value = '';
                 } catch (err) {
@@ -2734,7 +2814,7 @@
             if (!name) { alert('Please enter a reward name.'); return; }
             if (!value || value <= 0) { alert('Reward value must be a positive number.'); return; }
             state.rewards.push({ name, value });
-            nameEl.value = ''; valueEl.value = '1';
+            nameEl.value = ''; valueEl.value = '';
             patchState({ rewards: state.rewards });
             saveSession();
             renderOrgRewardSetup();
@@ -2827,9 +2907,9 @@
             const teamsTab = document.getElementById('tab-teams');
             if (teamsTab) teamsTab.style.display = local.isOrganiser ? '' : 'none';
 
-            document.getElementById('game-hole-title').textContent =
-                `Hole ${hole.number}` + (hole.location ? ` — ${hole.location}` : '');
-            document.getElementById('game-hole-sub').textContent = `${hi + 1} of ${state.holes.length}`;
+            document.getElementById('game-hole-title').textContent = `Hole ${hole.number}`;
+            const subText = hole.location ? `${hole.location} • ${hi + 1} of ${state.holes.length}` : `${hi + 1} of ${state.holes.length}`;
+            document.getElementById('game-hole-sub').textContent = subText;
 
             let alertHtml = '';
             if (hole.isWater) alertHtml = `<div class="hole-alert hole-alert-water">🌊 <strong>Water Hole</strong> — No one is allowed to go to the bathroom for the duration of this hole!</div>`;
@@ -3002,7 +3082,7 @@
             if (!container || state.teams.length === 0) { if (container) container.innerHTML = ''; return; }
             const hdrCols = state.holes.map((h, i) => `<th class="${i === local.currentHoleIndex ? 'prog-cur' : ''}">H${h.number}</th>`).join('');
             let html = `<div class="section-heading">Course Progress</div><div class="progress-wrap"><table class="progress-table">
-                <thead><tr><th class="lft">Team / Player</th>${hdrCols}<th class="total-col">Score</th><th class="total-col" style="color:rgba(231,76,60,0.8);">+Pen</th><th class="total-col">Total</th></tr></thead><tbody>`;
+                <thead><tr><th class="lft">Team / Player</th>${hdrCols}<th class="total-col">Score</th><th class="total-col" style="color:rgba(231,76,60,0.8);">+Pen</th><th class="total-col" style="color:rgba(94,201,136,0.8);">-Reward</th><th class="total-col">Total</th></tr></thead><tbody>`;
 
             state.teams.forEach((team, ti) => {
                 const color = teamColor(ti);
@@ -3023,12 +3103,13 @@
                         html += `<td class="${isCur ? 'prog-cur' : ''}"><span class="${cls}">${d > 0 ? '+' : ''}${d}</span></td>`;
                     } else { html += `<td class="${isCur ? 'prog-cur' : ''} prog-none">—</td>`; }
                 });
-                const pen = teamTotalPenalties(team.name), gt = rTotal + pen;
+                const pen = teamTotalPenalties(team.name), rew = teamTotalRewards(team.name), gt = rTotal + pen - rew;
                 const prePen = r1(rTotal - rPar), vpTotal = r1(gt - rPar);
                 const preCls = prePen < 0 ? 'prog-under' : prePen > 0 ? 'prog-over' : 'prog-par';
                 const totCls = vpTotal < 0 ? 'prog-under' : vpTotal > 0 ? 'prog-over' : 'prog-par';
                 html += `<td class="total-col"><span class="${preCls}">${prePen > 0 ? '+' : ''}${prePen}</span></td>`;
                 html += `<td class="total-col" style="font-size:10px;">${pen > 0 ? `<span style="color:#e74c3c;">+${r1(pen)}</span>` : '—'}</td>`;
+                html += `<td class="total-col" style="font-size:10px;">${rew > 0 ? `<span style="color:#5ec988;">-${r1(rew)}</span>` : '—'}</td>`;
                 html += `<td class="total-col"><span class="${totCls}">${vpTotal > 0 ? '+' : ''}${vpTotal}</span></td></tr>`;
 
                 // Per-player rows when expanded
@@ -3048,6 +3129,7 @@
                         const mVp = mPlayed > 0 ? r1(mTotal - mPar) : null;
                         const mcls = mVp === null ? 'prog-none' : mVp < 0 ? 'prog-under' : mVp > 0 ? 'prog-over' : 'prog-par';
                         html += `<td class="total-col" style="font-size:11px;"><span class="${mcls}">${mVp === null ? '—' : (mVp > 0 ? '+' : '') + mVp}</span></td>`;
+                        html += `<td class="total-col prog-none" style="font-size:10px;">—</td>`;
                         html += `<td class="total-col prog-none" style="font-size:10px;">—</td>`;
                         html += `<td class="total-col" style="font-size:11px;"><span class="${mcls}">${mVp === null ? '—' : (mVp > 0 ? '+' : '') + mVp}</span></td></tr>`;
                     });
