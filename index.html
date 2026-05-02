@@ -17,6 +17,34 @@
     <!-- SheetJS for Excel import/export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+    <!-- Mission pool for Secret Missions feature -->
+    <script>
+        const EASY_MISSIONS = [
+            'Fist bump 5 players not from your team',
+            'Get a player from another team do a toast with your team',
+            'Take a selfie on the phone of a player from another team without them knowing',
+            'Get a player on another team to say the word \'wholeheartedly\'',
+            'Get someone from another team to show their golf swing',
+            'Start an intra-team argument (between 2 players on the same team)',
+            'Get a player from another team to reveal how many steps they have done so far',
+            'Jump scare a player from another team (they must verbally scream)',
+            'Get a player from another team to download an app',
+            'Get a player from another team to call someone on speaker phone',
+            'Get a player on another team to spell the word \'Guiness\'',
+            'Get a player on another team to teach you a word in a different language',
+            'Start a conga line with at least two players from another team'
+        ];
+
+        const HARD_MISSIONS = [
+            'Convince someone from another team to get the wrong drink',
+            'Make a player on another team say the word bro 4 times in one sentence',
+            'Get a player on another team to quote a book',
+            'Get a player on another team to do a pushup',
+            'Get a player on another team to reveal their secret challenges (revealer gets +2 stroke penalty)',
+            'Tie a player from another team\'s shoelaces together'
+        ];
+    </script>
+
     <style>
         :root {
             --green: #1a6b3c;
@@ -1737,8 +1765,8 @@
                 <div class="input-row" style="margin-bottom:10px;">
                     <input type="text" id="org-reward-name" placeholder="Reward name (e.g. Hard mission)" maxlength="40"
                         onkeydown="if(event.key==='Enter') addRewardDefLobby()">
-                    <input type="number" id="org-reward-value" placeholder="-sips" min="1" max="20"
-                        class="narrow" style="flex:0 0 90px;" onkeydown="if(event.key==='Enter') addRewardDefLobby()">
+                    <input type="number" id="org-reward-value" placeholder="-sips" min="1" max="20" class="narrow"
+                        style="flex:0 0 90px;" onkeydown="if(event.key==='Enter') addRewardDefLobby()">
                     <button class="btn btn-secondary btn-sm" onclick="addRewardDefLobby()" style="white-space:nowrap;">+
                         Add</button>
                 </div>
@@ -3082,7 +3110,7 @@
             if (!container || state.teams.length === 0) { if (container) container.innerHTML = ''; return; }
             const hdrCols = state.holes.map((h, i) => `<th class="${i === local.currentHoleIndex ? 'prog-cur' : ''}">H${h.number}</th>`).join('');
             let html = `<div class="section-heading">Course Progress</div><div class="progress-wrap"><table class="progress-table">
-                <thead><tr><th class="lft">Team / Player</th>${hdrCols}<th class="total-col">Score</th><th class="total-col" style="color:rgba(231,76,60,0.8);">+Pen</th><th class="total-col" style="color:rgba(94,201,136,0.8);">-Reward</th><th class="total-col">Total</th></tr></thead><tbody>`;
+                <thead><tr><th class="lft">Team / Player</th>${hdrCols}<th class="total-col">Score</th><th class="total-col" style="color:rgba(231,76,60,0.8);">+Pen</th><th class="total-col" style="color:rgba(94,201,136,0.8);">-Rew</th><th class="total-col">Total</th></tr></thead><tbody>`;
 
             state.teams.forEach((team, ti) => {
                 const color = teamColor(ti);
