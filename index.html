@@ -2539,6 +2539,7 @@
                 <span class="text-muted" style="font-size:12px;">${state.holes.length}/18 holes</span>
             </div>`;
             container.innerHTML = html;
+            renderOrgSecretMissionsUI();
         }
 
         function toggleHole(i) {
@@ -2867,6 +2868,18 @@
             patchState({ rewards: state.rewards, rewardLog: state.rewardLog });
             saveSession();
             renderOrgRewardSetup();
+        }
+
+        function toggleSecretMissions() {
+            const checkbox = document.getElementById('org-secret-missions-toggle');
+            state.secretMissionsEnabled = checkbox.checked;
+            patchState({ secretMissionsEnabled: state.secretMissionsEnabled });
+            saveSession();
+        }
+
+        function renderOrgSecretMissionsUI() {
+            const checkbox = document.getElementById('org-secret-missions-toggle');
+            if (checkbox) checkbox.checked = state.secretMissionsEnabled;
         }
 
         // ============================================================
