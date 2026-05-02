@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pub Golf ⛳🍺</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap"
@@ -15,6 +16,34 @@
 
     <!-- SheetJS for Excel import/export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- Mission pool for Secret Missions feature -->
+    <script>
+        const EASY_MISSIONS = [
+            'Fist bump 5 players not from your team',
+            'Get a player from another team do a toast with your team',
+            'Take a selfie on the phone of a player from another team without them knowing',
+            'Get a player on another team to say the word \'wholeheartedly\'',
+            'Get someone from another team to show their golf swing',
+            'Start an intra-team argument (between 2 players on the same team)',
+            'Get a player from another team to reveal how many steps they have done so far',
+            'Jump scare a player from another team (they must verbally scream)',
+            'Get a player from another team to download an app',
+            'Get a player from another team to call someone on speaker phone',
+            'Get a player on another team to spell the word \'Guiness\'',
+            'Get a player on another team to teach you a word in a different language',
+            'Start a conga line with at least two players from another team'
+        ];
+
+        const HARD_MISSIONS = [
+            'Convince someone from another team to get the wrong drink',
+            'Make a player on another team say the word bro 4 times in one sentence',
+            'Get a player on another team to quote a book',
+            'Get a player on another team to do a pushup',
+            'Get a player on another team to reveal their secret challenges (revealer gets +2 stroke penalty)',
+            'Tie a player from another team\'s shoelaces together'
+        ];
+    </script>
 
     <style>
         :root {
@@ -1674,7 +1703,8 @@
             </div>
             <div class="card">
                 <div class="card-title">🎯 Your Team (Optional)</div>
-                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Create a team to play as the organizer, or leave empty to just referee.</p>
+                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Create a team to play as the
+                    organizer, or leave empty to just referee.</p>
                 <div id="org-my-team-display"></div>
                 <div id="org-my-team-form" style="display:none;">
                     <div class="form-group">
@@ -1690,21 +1720,27 @@
                             onkeydown="if(event.key==='Enter') addOrgTeamMember()">
                         <button class="btn btn-secondary btn-sm" onclick="addOrgTeamMember()">+ Add</button>
                     </div>
-                    <div style="font-size:11px; color:rgba(250,246,238,0.35); margin-top:5px;">HCP = handicap (extra sips per hole)</div>
+                    <div style="font-size:11px; color:rgba(250,246,238,0.35); margin-top:5px;">HCP = handicap (extra
+                        sips per hole)</div>
                     <div id="org-my-members-list" style="margin-top:12px;"></div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;">
                         <button class="btn btn-secondary" onclick="cancelOrgTeam()">Cancel</button>
                         <button class="btn btn-primary" onclick="saveOrgTeam()">Save Team</button>
                     </div>
                 </div>
-                <button class="btn btn-secondary" id="org-create-team-btn" style="width:100%;" onclick="startOrgTeamForm()">+ Create Your Team</button>
+                <button class="btn btn-secondary" id="org-create-team-btn" style="width:100%;"
+                    onclick="startOrgTeamForm()">+ Create Your Team</button>
             </div>
             <div class="card">
                 <div class="card-title">⛳ Hole Setup</div>
                 <div style="display:flex; gap:8px; margin-bottom:12px;">
-                    <button class="btn btn-secondary btn-sm" onclick="downloadHoleTemplate()" style="flex:1;">📥 Download Template</button>
-                    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('hole-excel-upload').click()" style="flex:1;">📤 Upload Excel</button>
-                    <input type="file" id="hole-excel-upload" accept=".xlsx,.xls" style="display:none;" onchange="uploadHoleExcel(event)">
+                    <button class="btn btn-secondary btn-sm" onclick="downloadHoleTemplate()" style="flex:1;">📥
+                        Download Template</button>
+                    <button class="btn btn-secondary btn-sm"
+                        onclick="document.getElementById('hole-excel-upload').click()" style="flex:1;">📤 Upload
+                        Excel</button>
+                    <input type="file" id="hole-excel-upload" accept=".xlsx,.xls" style="display:none;"
+                        onchange="uploadHoleExcel(event)">
                 </div>
                 <div id="org-holes-setup"></div>
             </div>
@@ -1724,16 +1760,27 @@
             </div>
             <div class="card">
                 <div class="card-title">🏆 Reward Setup</div>
-                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Define reward types before the game starts. Locked once the game begins.</p>
+                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Define reward types before the game
+                    starts. Locked once the game begins.</p>
                 <div class="input-row" style="margin-bottom:10px;">
                     <input type="text" id="org-reward-name" placeholder="Reward name (e.g. Hard mission)" maxlength="40"
                         onkeydown="if(event.key==='Enter') addRewardDefLobby()">
-                    <input type="number" id="org-reward-value" placeholder="-sips" min="1" max="20" value="1" class="narrow"
+                    <input type="number" id="org-reward-value" placeholder="-sips" min="1" max="20" class="narrow"
                         style="flex:0 0 90px;" onkeydown="if(event.key==='Enter') addRewardDefLobby()">
-                    <button class="btn btn-success btn-sm" onclick="addRewardDefLobby()" style="white-space:nowrap;">+
+                    <button class="btn btn-secondary btn-sm" onclick="addRewardDefLobby()" style="white-space:nowrap;">+
                         Add</button>
                 </div>
                 <div id="org-reward-defs-list"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">🎯 Secret Missions</div>
+                <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Teams will receive 2 easy and 1 hard mission. Missions are assigned when teams join and cannot be shared.</p>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" id="org-secret-missions-toggle" onchange="toggleSecretMissions()" style="width:20px; height:20px; cursor:pointer;">
+                        <span>Enable secret missions for this game</span>
+                    </label>
+                </div>
             </div>
             <button class="btn btn-primary" onclick="startGame()">🏌️ Start Game</button>
         </div>
@@ -1761,8 +1808,8 @@
             <div class="tab-bar">
                 <button class="tab active" id="tab-score" onclick="switchTab('score')">⛳ Hole</button>
                 <button class="tab" id="tab-leaderboard" onclick="switchTab('leaderboard')">🏆 Scores</button>
-                <button class="tab" id="tab-course" onclick="switchTab('course')">📋 Course</button>
                 <button class="tab" id="tab-penalties" onclick="switchTab('penalties')">⚙️ Adjustments</button>
+                <button class="tab" id="tab-missions" onclick="switchTab('missions')" style="display:none;">🎯 Missions</button>
                 <button class="tab" id="tab-teams" onclick="switchTab('teams')" style="display:none;">👥 Teams</button>
             </div>
             <div id="game-tab-score">
@@ -1785,22 +1832,18 @@
                 </div>
                 <div id="game-course-progress"></div>
             </div>
-            <div id="game-tab-course" style="display:none;">
-                <div class="card">
-                    <div class="card-title">📋 Course Card</div>
-                    <div id="course-content"></div>
-                </div>
-            </div>
             <div id="game-tab-penalties" style="display:none;">
                 <div class="card">
                     <div class="card-title">🏆 Reward Reference</div>
-                    <p class="text-muted" style="margin-bottom:12px; font-size:13px;">Reward types set before the game started.</p>
+                    <p class="text-muted" style="margin-bottom:12px; font-size:13px;">Reward types set before the game
+                        started.</p>
                     <div id="game-reward-defs-list"></div>
                 </div>
                 <div class="card">
-                    <div class="card-title">🏆 Award Reward</div>
+                    <div class="card-title">🏆 Reward Log</div>
                     <div id="org-award-reward-section">
-                        <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Award rewards to teams for completing missions.</p>
+                        <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Award rewards to teams for
+                            completing missions.</p>
                         <div class="input-row" style="margin-bottom:10px;">
                             <select id="reward-log-team"></select>
                             <select id="reward-log-type"></select>
@@ -1809,7 +1852,8 @@
                         </div>
                     </div>
                     <div id="player-reward-notice" style="display:none;">
-                        <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Rewards are managed by the game organizer.</p>
+                        <p class="text-muted" style="margin-bottom:14px; font-size:13px;">Rewards are managed by the
+                            game organizer.</p>
                     </div>
                     <div id="reward-log-list"></div>
                 </div>
@@ -1839,6 +1883,9 @@
                         cannot be undone.</p>
                     <div id="org-teams-manage"></div>
                 </div>
+            </div>
+            <div id="game-tab-missions" style="display:none;">
+                <div id="game-missions-content"></div>
             </div>
         </div>
         <!-- GAME OVER SCREEN -->
@@ -1917,7 +1964,9 @@
             penalties: [],
             penaltyLog: [],
             rewards: [],
-            rewardLog: []
+            rewardLog: [],
+            secretMissionsEnabled: false,
+            missions: {}
         };
 
         let createDraft = { members: [] };
@@ -1966,6 +2015,8 @@
             state.penaltyLog = toArr(data.penaltyLog);
             state.rewards = toArr(data.rewards);
             state.rewardLog = toArr(data.rewardLog);
+            state.secretMissionsEnabled = data.secretMissionsEnabled || false;
+            state.missions = data.missions || {};
 
             // Scores need special handling: each member's array may have null gaps
             state.scores = {};
@@ -1989,7 +2040,11 @@
                 holes: state.holes,
                 scores: state.scores,
                 penalties: state.penalties,
-                penaltyLog: state.penaltyLog
+                penaltyLog: state.penaltyLog,
+                rewards: state.rewards,
+                rewardLog: state.rewardLog,
+                secretMissionsEnabled: state.secretMissionsEnabled,
+                missions: state.missions
             });
         }
 
@@ -2046,7 +2101,6 @@
                     if (activeTabEl) {
                         const tab = activeTabEl.id.replace('tab-', '');
                         if (tab === 'leaderboard') { renderLeaderboard(); renderCourseProgress(); }
-                        else if (tab === 'course') renderCourseTab();
                         else if (tab === 'penalties') renderPenaltiesTab();
                         else if (tab === 'teams') renderTeamsManage();
                     }
@@ -2217,7 +2271,43 @@
             scores[teamName] = {};
             joinDraft.members.forEach(m => { scores[teamName][m.name] = new Array(holes.length).fill(null); });
 
-            await db.ref('games/' + code).update({ teams: updatedTeams, scores });
+            // Assign missions if feature is enabled
+            const missions = { ...(gameData.missions || {}) };
+            if (gameData.secretMissionsEnabled) {
+                // Get used missions from existing teams
+                const usedMissions = new Set();
+                Object.keys(missions).forEach(tname => {
+                    if (missions[tname]) {
+                        missions[tname].forEach(m => usedMissions.add(m.text));
+                    }
+                });
+
+                // Get available easy missions
+                let easyPool = EASY_MISSIONS.filter(m => !usedMissions.has(m));
+                if (easyPool.length < 2) {
+                    easyPool = EASY_MISSIONS;  // Allow duplicates if pool exhausted
+                }
+
+                // Get available hard missions
+                let hardPool = HARD_MISSIONS.filter(m => !usedMissions.has(m));
+                if (hardPool.length < 1) {
+                    hardPool = HARD_MISSIONS;  // Allow duplicates if pool exhausted
+                }
+
+                // Randomly select without replacement from available pools
+                const selected = [];
+                for (let i = 0; i < 2; i++) {
+                    const idx = Math.floor(Math.random() * easyPool.length);
+                    selected.push({ text: easyPool[idx], difficulty: 'easy' });
+                    easyPool.splice(idx, 1);  // Remove to prevent same mission twice
+                }
+                const hardIdx = Math.floor(Math.random() * hardPool.length);
+                selected.push({ text: hardPool[hardIdx], difficulty: 'hard' });
+
+                missions[teamName] = selected;
+            }
+
+            await db.ref('games/' + code).update({ teams: updatedTeams, scores, missions });
 
             // Clear old state before joining new game
             applySnapshot(gameData);
@@ -2495,6 +2585,7 @@
                 <span class="text-muted" style="font-size:12px;">${state.holes.length}/18 holes</span>
             </div>`;
             container.innerHTML = html;
+            renderOrgSecretMissionsUI();
         }
 
         function toggleHole(i) {
@@ -2591,13 +2682,63 @@
 
         // Excel template download
         function downloadHoleTemplate() {
-            const headers = ['Location / Bar Name', 'Beverage', 'Par (sips)', 'Hazard', 'Special Rule'];
-            const exampleRow = ['The Crown', '🍺 Pint', 4, '', 'Left hand only'];
-            const data = [headers, exampleRow, ...Array(17).fill(null).map(() => ['', '', '', '', ''])];
+            const headers = ['Location / Bar Name', 'Beverage', 'Par (sips)', 'Hazard', 'Special Rule', 'Penalty Name', 'Penalty Value', 'Reward Name', 'Reward Value'];
+            const exampleRow = ['The Crown', '🍺 Pint', 4, '', 'Left hand only', 'Spill', 2, 'Hard mission', 3];
+            const data = [headers, exampleRow, ...Array(17).fill(null).map(() => ['', '', '', '', '', '', '', '', ''])];
             const worksheet = XLSX.utils.aoa_to_sheet(data);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Holes');
             XLSX.writeFile(workbook, 'hole-template.xlsx');
+        }
+
+        // Fuzzy string matching function using Levenshtein distance
+        function fuzzyMatch(input, options, threshold = 0.6) {
+            const inputLower = input.toLowerCase().trim();
+            let bestMatch = null;
+            let bestScore = 0;
+
+            options.forEach(opt => {
+                // Strip emoji from beverage name for comparison
+                const cleanOpt = opt.replace(/^[^\w\s]*\s*/, '').toLowerCase();
+                const score = calculateSimilarity(inputLower, cleanOpt);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = opt;
+                }
+            });
+
+            return bestScore >= threshold ? bestMatch : null;
+        }
+
+        // Calculate string similarity (0 to 1)
+        function calculateSimilarity(str1, str2) {
+            const longer = str1.length > str2.length ? str1 : str2;
+            const shorter = str1.length > str2.length ? str2 : str1;
+            if (longer.length === 0) return 1.0;
+            const editDistance = getEditDistance(longer, shorter);
+            return (longer.length - editDistance) / longer.length;
+        }
+
+        // Calculate edit distance (Levenshtein)
+        function getEditDistance(s1, s2) {
+            const costs = [];
+            for (let k = 0; k <= s1.length; k++) {
+                let lastValue = k;
+                for (let k2 = 0; k2 <= s2.length; k2++) {
+                    if (k === 0) {
+                        costs[k2] = k2;
+                    } else if (k2 > 0) {
+                        let newValue = costs[k2 - 1];
+                        if (s1.charAt(k - 1) !== s2.charAt(k2 - 1)) {
+                            newValue = Math.min(Math.min(newValue, lastValue), costs[k2]) + 1;
+                        }
+                        costs[k2 - 1] = lastValue;
+                        lastValue = newValue;
+                    }
+                }
+                if (k > 0) costs[s2.length] = lastValue;
+            }
+            return costs[s2.length];
         }
 
         // Parse and upload Excel file
@@ -2614,6 +2755,9 @@
                     const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                     const newHoles = [];
+                    const newPenalties = [...state.penalties];
+                    const newRewards = [...state.rewards];
+
                     for (let i = 1; i < rows.length && newHoles.length < 18; i++) {
                         const row = rows[i];
                         if (!row || row.every(cell => !cell || (typeof cell === 'string' && !cell.trim()))) continue;
@@ -2623,17 +2767,42 @@
                         const parInput = parseInt(row[2]) || 4;
                         const hazardInput = (row[3] || '').toString().toLowerCase().trim();
                         const specialRule = (row[4] || '').toString().trim();
+                        const penaltyName = (row[5] || '').toString().trim();
+                        const penaltyValue = parseInt(row[6]) || 0;
+                        const rewardName = (row[7] || '').toString().trim();
+                        const rewardValue = parseInt(row[8]) || 0;
 
-                        // Match beverage: case-insensitive exact match, else use as custom
+                        // Match beverage: exact match, then fuzzy match, else use as custom
                         let beverage = BEVERAGES[0];
                         let customBeverage = '';
                         if (beverageInput) {
-                            const match = BEVERAGES.find(b => b.toLowerCase() === beverageInput.toLowerCase());
-                            if (match) {
-                                beverage = match;
+                            // Try exact match first
+                            const exactMatch = BEVERAGES.find(b => b.toLowerCase() === beverageInput.toLowerCase());
+                            if (exactMatch) {
+                                beverage = exactMatch;
                             } else {
-                                beverage = 'Other...';
-                                customBeverage = beverageInput;
+                                // Try fuzzy match with 60% threshold
+                                const fuzzyMatchResult = fuzzyMatch(beverageInput, BEVERAGES, 0.6);
+                                if (fuzzyMatchResult) {
+                                    beverage = fuzzyMatchResult;
+                                } else {
+                                    beverage = 'Other...';
+                                    customBeverage = beverageInput;
+                                }
+                            }
+                        }
+
+                        // Add penalty if provided and not already exists
+                        if (penaltyName && penaltyValue > 0) {
+                            if (!newPenalties.find(p => p.name === penaltyName)) {
+                                newPenalties.push({ name: penaltyName, strokes: penaltyValue });
+                            }
+                        }
+
+                        // Add reward if provided and not already exists
+                        if (rewardName && rewardValue > 0) {
+                            if (!newRewards.find(r => r.name === rewardName)) {
+                                newRewards.push({ name: rewardName, value: rewardValue });
                             }
                         }
 
@@ -2661,10 +2830,12 @@
                         });
                     });
 
-                    patchState({ holes: state.holes, scores: state.scores });
+                    patchState({ holes: state.holes, scores: state.scores, penalties: newPenalties, rewards: newRewards });
                     saveSession();
                     renderHolesSetup();
-                    alert(`✅ Loaded ${newHoles.length} hole${newHoles.length === 1 ? '' : 's'}`);
+                    renderOrgPenaltySetup();
+                    renderOrgRewardSetup();
+                    alert(`✅ Loaded ${newHoles.length} hole${newHoles.length === 1 ? '' : 's'}${newPenalties.length > state.penalties.length ? ', ' + (newPenalties.length - state.penalties.length) + ' penalty(ies)' : ''}${newRewards.length > state.rewards.length ? ', ' + (newRewards.length - state.rewards.length) + ' reward(s)' : ''}`);
                     // Reset file input
                     event.target.value = '';
                 } catch (err) {
@@ -2730,7 +2901,7 @@
             if (!name) { alert('Please enter a reward name.'); return; }
             if (!value || value <= 0) { alert('Reward value must be a positive number.'); return; }
             state.rewards.push({ name, value });
-            nameEl.value = ''; valueEl.value = '1';
+            nameEl.value = ''; valueEl.value = '';
             patchState({ rewards: state.rewards });
             saveSession();
             renderOrgRewardSetup();
@@ -2743,6 +2914,53 @@
             patchState({ rewards: state.rewards, rewardLog: state.rewardLog });
             saveSession();
             renderOrgRewardSetup();
+        }
+
+        function toggleSecretMissions() {
+            const checkbox = document.getElementById('org-secret-missions-toggle');
+            state.secretMissionsEnabled = checkbox.checked;
+            patchState({ secretMissionsEnabled: state.secretMissionsEnabled });
+            saveSession();
+        }
+
+        function renderOrgSecretMissionsUI() {
+            const checkbox = document.getElementById('org-secret-missions-toggle');
+            if (checkbox) checkbox.checked = state.secretMissionsEnabled;
+        }
+
+        function getMissionsForTeam(teamName) {
+            if (!state.secretMissionsEnabled) return null;
+
+            const usedMissions = new Set();
+            Object.keys(state.missions).forEach(tname => {
+                if (tname !== teamName && state.missions[tname]) {
+                    state.missions[tname].forEach(m => usedMissions.add(m.text));
+                }
+            });
+
+            // Get available easy missions (prefer unused, fall back to used if all taken)
+            let easyPool = EASY_MISSIONS.filter(m => !usedMissions.has(m));
+            if (easyPool.length < 2) {
+                easyPool = EASY_MISSIONS;  // Allow duplicates if pool exhausted
+            }
+
+            // Get available hard missions
+            let hardPool = HARD_MISSIONS.filter(m => !usedMissions.has(m));
+            if (hardPool.length < 1) {
+                hardPool = HARD_MISSIONS;  // Allow duplicates if pool exhausted
+            }
+
+            // Randomly select without replacement from available pools
+            const selected = [];
+            for (let i = 0; i < 2; i++) {
+                const idx = Math.floor(Math.random() * easyPool.length);
+                selected.push({ text: easyPool[idx], difficulty: 'easy' });
+                easyPool.splice(idx, 1);  // Remove to prevent same mission twice
+            }
+            const hardIdx = Math.floor(Math.random() * hardPool.length);
+            selected.push({ text: hardPool[hardIdx], difficulty: 'hard' });
+
+            return selected;
         }
 
         // ============================================================
@@ -2768,7 +2986,7 @@
                 localStorage.removeItem('pgSession');
                 sessionStorage.removeItem('pgSession');
                 local = { lobbyCode: null, isOrganiser: false, myTeamName: '', currentHoleIndex: 0 };
-                state = { gameName: '', gameStarted: false, teams: [], holes: [], scores: {}, penalties: [], penaltyLog: [], rewards: [], rewardLog: [] };
+                state = { gameName: '', gameStarted: false, teams: [], holes: [], scores: {}, penalties: [], penaltyLog: [], rewards: [], rewardLog: [], secretMissionsEnabled: false, missions: {} };
                 createDraft = { members: [] }; joinDraft = { members: [] };
                 renderDraftMembers('create'); renderDraftMembers('join');
                 updateHoleBg();
@@ -2793,15 +3011,20 @@
         // TAB SWITCHING
         // ============================================================
         function switchTab(tab) {
-            ['score', 'leaderboard', 'course', 'penalties', 'teams'].forEach(t => {
+            ['score', 'leaderboard', 'penalties', 'teams', 'missions'].forEach(t => {
                 document.getElementById('game-tab-' + t).style.display = (t === tab) ? 'block' : 'none';
                 const btn = document.getElementById('tab-' + t);
                 if (btn) btn.classList.toggle('active', t === tab);
             });
             if (tab === 'leaderboard') { renderLeaderboard(); renderCourseProgress(); }
-            if (tab === 'course') renderCourseTab();
             if (tab === 'penalties') renderPenaltiesTab();
             if (tab === 'teams') renderTeamsManage();
+            if (tab === 'missions') renderMissionsTab();
+            // Show missions tab only if enabled and player in team
+            const missionsTab = document.getElementById('tab-missions');
+            if (missionsTab) {
+                missionsTab.style.display = (state.secretMissionsEnabled && local.myTeamName) ? '' : 'none';
+            }
         }
 
         function changeHole(delta) {
@@ -2812,7 +3035,15 @@
             renderScoringHole();
         }
 
-        function renderGame() { local.currentHoleIndex = 0; renderScoringHole(); }
+        function renderGame() {
+            local.currentHoleIndex = 0;
+            renderScoringHole();
+            // Update missions tab visibility
+            const missionsTab = document.getElementById('tab-missions');
+            if (missionsTab) {
+                missionsTab.style.display = (state.secretMissionsEnabled && local.myTeamName) ? '' : 'none';
+            }
+        }
 
         // ============================================================
         // SCORING HOLE
@@ -2824,9 +3055,9 @@
             const teamsTab = document.getElementById('tab-teams');
             if (teamsTab) teamsTab.style.display = local.isOrganiser ? '' : 'none';
 
-            document.getElementById('game-hole-title').textContent =
-                `Hole ${hole.number}` + (hole.location ? ` — ${hole.location}` : '');
-            document.getElementById('game-hole-sub').textContent = `${hi + 1} of ${state.holes.length}`;
+            document.getElementById('game-hole-title').textContent = `Hole ${hole.number}`;
+            const subText = hole.location ? `${hole.location} • ${hi + 1} of ${state.holes.length}` : `${hi + 1} of ${state.holes.length}`;
+            document.getElementById('game-hole-sub').textContent = subText;
 
             let alertHtml = '';
             if (hole.isWater) alertHtml = `<div class="hole-alert hole-alert-water">🌊 <strong>Water Hole</strong> — No one is allowed to go to the bathroom for the duration of this hole!</div>`;
@@ -2997,9 +3228,9 @@
         function renderCourseProgress() {
             const container = document.getElementById('game-course-progress');
             if (!container || state.teams.length === 0) { if (container) container.innerHTML = ''; return; }
-            const hdrCols = state.holes.map((h, i) => `<th class="${i === local.currentHoleIndex ? 'prog-cur' : ''}">H${h.number}${h.isWater ? '🌊' : h.isBunker ? '⛱️' : ''}${h.location ? '<br><span style="font-size:9px;opacity:0.6;">' + h.location.slice(0, 6) + '</span>' : ''}</th>`).join('');
+            const hdrCols = state.holes.map((h, i) => `<th class="${i === local.currentHoleIndex ? 'prog-cur' : ''}">H${h.number}</th>`).join('');
             let html = `<div class="section-heading">Course Progress</div><div class="progress-wrap"><table class="progress-table">
-                <thead><tr><th class="lft">Team / Player</th>${hdrCols}<th class="total-col">Score</th><th class="total-col" style="color:rgba(231,76,60,0.8);">+Pen</th><th class="total-col">Total</th></tr></thead><tbody>`;
+                <thead><tr><th class="lft">Team / Player</th>${hdrCols}<th class="total-col">Score</th><th class="total-col" style="color:rgba(231,76,60,0.8);">+Pen</th><th class="total-col" style="color:rgba(94,201,136,0.8);">-Rew</th><th class="total-col">Total</th></tr></thead><tbody>`;
 
             state.teams.forEach((team, ti) => {
                 const color = teamColor(ti);
@@ -3020,12 +3251,13 @@
                         html += `<td class="${isCur ? 'prog-cur' : ''}"><span class="${cls}">${d > 0 ? '+' : ''}${d}</span></td>`;
                     } else { html += `<td class="${isCur ? 'prog-cur' : ''} prog-none">—</td>`; }
                 });
-                const pen = teamTotalPenalties(team.name), gt = rTotal + pen;
+                const pen = teamTotalPenalties(team.name), rew = teamTotalRewards(team.name), gt = rTotal + pen - rew;
                 const prePen = r1(rTotal - rPar), vpTotal = r1(gt - rPar);
                 const preCls = prePen < 0 ? 'prog-under' : prePen > 0 ? 'prog-over' : 'prog-par';
                 const totCls = vpTotal < 0 ? 'prog-under' : vpTotal > 0 ? 'prog-over' : 'prog-par';
                 html += `<td class="total-col"><span class="${preCls}">${prePen > 0 ? '+' : ''}${prePen}</span></td>`;
                 html += `<td class="total-col" style="font-size:10px;">${pen > 0 ? `<span style="color:#e74c3c;">+${r1(pen)}</span>` : '—'}</td>`;
+                html += `<td class="total-col" style="font-size:10px;">${rew > 0 ? `<span style="color:#5ec988;">-${r1(rew)}</span>` : '—'}</td>`;
                 html += `<td class="total-col"><span class="${totCls}">${vpTotal > 0 ? '+' : ''}${vpTotal}</span></td></tr>`;
 
                 // Per-player rows when expanded
@@ -3046,12 +3278,80 @@
                         const mcls = mVp === null ? 'prog-none' : mVp < 0 ? 'prog-under' : mVp > 0 ? 'prog-over' : 'prog-par';
                         html += `<td class="total-col" style="font-size:11px;"><span class="${mcls}">${mVp === null ? '—' : (mVp > 0 ? '+' : '') + mVp}</span></td>`;
                         html += `<td class="total-col prog-none" style="font-size:10px;">—</td>`;
+                        html += `<td class="total-col prog-none" style="font-size:10px;">—</td>`;
                         html += `<td class="total-col" style="font-size:11px;"><span class="${mcls}">${mVp === null ? '—' : (mVp > 0 ? '+' : '') + mVp}</span></td></tr>`;
                     });
                 }
             });
             html += `</tbody></table></div>`;
             container.innerHTML = html;
+        }
+
+        // ============================================================
+        // MISSIONS TAB
+        // ============================================================
+        function renderMissionsTab() {
+            const container = document.getElementById('game-missions-content');
+            if (!container || !state.secretMissionsEnabled || !local.myTeamName) return;
+
+            const missions = state.missions[local.myTeamName];
+            if (!missions || missions.length === 0) {
+                container.innerHTML = '<p class="text-muted">No missions assigned yet.</p>';
+                return;
+            }
+
+            const easyMissions = missions.filter(m => m.difficulty === 'easy');
+            const hardMissions = missions.filter(m => m.difficulty === 'hard');
+
+            const getChecked = (missionText) => {
+                const checked = JSON.parse(localStorage.getItem(`${local.myTeamName}_missions_checked`) || '[]');
+                return checked.includes(missionText);
+            };
+
+            let html = '<div style="padding:16px;">';
+
+            if (easyMissions.length > 0) {
+                html += '<div style="margin-bottom:20px;"><h3 style="font-size:14px; margin-bottom:10px; color:var(--gold);">Easy Missions</h3>';
+                easyMissions.forEach(m => {
+                    const checked = getChecked(m.text);
+                    html += `<div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; padding:10px; background:rgba(250,246,238,0.04); border-radius:8px;">
+                        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleMissionCheckbox('${local.myTeamName}', '${m.text.replace(/'/g, "\\'")}', this.checked)" style="width:18px; height:18px; cursor:pointer;">
+                        <span style="flex:1;">${m.text}</span>
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            if (hardMissions.length > 0) {
+                html += '<div><h3 style="font-size:14px; margin-bottom:10px; color:var(--gold);">Hard Missions</h3>';
+                hardMissions.forEach(m => {
+                    const checked = getChecked(m.text);
+                    html += `<div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; padding:10px; background:rgba(250,246,238,0.04); border-radius:8px;">
+                        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleMissionCheckbox('${local.myTeamName}', '${m.text.replace(/'/g, "\\'")}', this.checked)" style="width:18px; height:18px; cursor:pointer;">
+                        <span style="flex:1;">${m.text}</span>
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function toggleMissionCheckbox(teamName, missionText, isChecked) {
+            const key = `${teamName}_missions_checked`;
+            const checked = JSON.parse(localStorage.getItem(key) || '[]');
+
+            if (isChecked) {
+                if (!checked.includes(missionText)) {
+                    checked.push(missionText);
+                }
+            } else {
+                const idx = checked.indexOf(missionText);
+                if (idx > -1) checked.splice(idx, 1);
+            }
+
+            localStorage.setItem(key, JSON.stringify(checked));
         }
 
         // ============================================================
@@ -3328,7 +3628,9 @@
                 penalties: [],
                 penaltyLog: [],
                 rewards: [],
-                rewardLog: []
+                rewardLog: [],
+                secretMissionsEnabled: false,
+                missions: {}
             };
             localStorage.removeItem('pgSession');
             sessionStorage.removeItem('pgSession');
