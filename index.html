@@ -2015,6 +2015,8 @@
             state.penaltyLog = toArr(data.penaltyLog);
             state.rewards = toArr(data.rewards);
             state.rewardLog = toArr(data.rewardLog);
+            state.secretMissionsEnabled = data.secretMissionsEnabled || false;
+            state.missions = data.missions || {};
 
             // Scores need special handling: each member's array may have null gaps
             state.scores = {};
@@ -2038,7 +2040,11 @@
                 holes: state.holes,
                 scores: state.scores,
                 penalties: state.penalties,
-                penaltyLog: state.penaltyLog
+                penaltyLog: state.penaltyLog,
+                rewards: state.rewards,
+                rewardLog: state.rewardLog,
+                secretMissionsEnabled: state.secretMissionsEnabled,
+                missions: state.missions
             });
         }
 
