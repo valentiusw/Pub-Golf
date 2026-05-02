@@ -2261,7 +2261,43 @@
             scores[teamName] = {};
             joinDraft.members.forEach(m => { scores[teamName][m.name] = new Array(holes.length).fill(null); });
 
-            await db.ref('games/' + code).update({ teams: updatedTeams, scores });
+            // Assign missions if feature is enabled
+            const missions = { ...(gameData.missions || {}) };
+            if (gameData.secretMissionsEnabled) {
+                // Get used missions from existing teams
+                const usedMissions = new Set();
+                Object.keys(missions).forEach(tname => {
+                    if (missions[tname]) {
+                        missions[tname].forEach(m => usedMissions.add(m.text));
+                    }
+                });
+
+                // Get available easy missions
+                let easyPool = EASY_MISSIONS.filter(m => !usedMissions.has(m));
+                if (easyPool.length < 2) {
+                    easyPool = EASY_MISSIONS;  // Allow duplicates if pool exhausted
+                }
+
+                // Get available hard missions
+                let hardPool = HARD_MISSIONS.filter(m => !usedMissions.has(m));
+                if (hardPool.length < 1) {
+                    hardPool = HARD_MISSIONS;  // Allow duplicates if pool exhausted
+                }
+
+                // Randomly select without replacement from available pools
+                const selected = [];
+                for (let i = 0; i < 2; i++) {
+                    const idx = Math.floor(Math.random() * easyPool.length);
+                    selected.push({ text: easyPool[idx], difficulty: 'easy' });
+                    easyPool.splice(idx, 1);  // Remove to prevent same mission twice
+                }
+                const hardIdx = Math.floor(Math.random() * hardPool.length);
+                selected.push({ text: hardPool[hardIdx], difficulty: 'hard' });
+
+                missions[teamName] = selected;
+            }
+
+            await db.ref('games/' + code).update({ teams: updatedTeams, scores, missions });
 
             // Clear old state before joining new game
             applySnapshot(gameData);
@@ -2880,6 +2916,41 @@
         function renderOrgSecretMissionsUI() {
             const checkbox = document.getElementById('org-secret-missions-toggle');
             if (checkbox) checkbox.checked = state.secretMissionsEnabled;
+        }
+
+        function getMissionsForTeam(teamName) {
+            if (!state.secretMissionsEnabled) return null;
+
+            const usedMissions = new Set();
+            Object.keys(state.missions).forEach(tname => {
+                if (tname !== teamName && state.missions[tname]) {
+                    state.missions[tname].forEach(m => usedMissions.add(m.text));
+                }
+            });
+
+            // Get available easy missions (prefer unused, fall back to used if all taken)
+            let easyPool = EASY_MISSIONS.filter(m => !usedMissions.has(m));
+            if (easyPool.length < 2) {
+                easyPool = EASY_MISSIONS;  // Allow duplicates if pool exhausted
+            }
+
+            // Get available hard missions
+            let hardPool = HARD_MISSIONS.filter(m => !usedMissions.has(m));
+            if (hardPool.length < 1) {
+                hardPool = HARD_MISSIONS;  // Allow duplicates if pool exhausted
+            }
+
+            // Randomly select without replacement from available pools
+            const selected = [];
+            for (let i = 0; i < 2; i++) {
+                const idx = Math.floor(Math.random() * easyPool.length);
+                selected.push({ text: easyPool[idx], difficulty: 'easy' });
+                easyPool.splice(idx, 1);  // Remove to prevent same mission twice
+            }
+            const hardIdx = Math.floor(Math.random() * hardPool.length);
+            selected.push({ text: hardPool[hardIdx], difficulty: 'hard' });
+
+            return selected;
         }
 
         // ============================================================
