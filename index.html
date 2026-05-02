@@ -3029,7 +3029,15 @@
             renderScoringHole();
         }
 
-        function renderGame() { local.currentHoleIndex = 0; renderScoringHole(); }
+        function renderGame() {
+            local.currentHoleIndex = 0;
+            renderScoringHole();
+            // Update missions tab visibility
+            const missionsTab = document.getElementById('tab-missions');
+            if (missionsTab) {
+                missionsTab.style.display = (state.secretMissionsEnabled && local.myTeamName) ? '' : 'none';
+            }
+        }
 
         // ============================================================
         // SCORING HOLE
