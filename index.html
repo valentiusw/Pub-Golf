@@ -3324,6 +3324,22 @@
             container.innerHTML = html;
         }
 
+        function toggleMissionCheckbox(teamName, missionText, isChecked) {
+            const key = `${teamName}_missions_checked`;
+            const checked = JSON.parse(localStorage.getItem(key) || '[]');
+
+            if (isChecked) {
+                if (!checked.includes(missionText)) {
+                    checked.push(missionText);
+                }
+            } else {
+                const idx = checked.indexOf(missionText);
+                if (idx > -1) checked.splice(idx, 1);
+            }
+
+            localStorage.setItem(key, JSON.stringify(checked));
+        }
+
         // ============================================================
         // PENALTIES SUMMARY
         // ============================================================
