@@ -1809,6 +1809,7 @@
                 <button class="tab active" id="tab-score" onclick="switchTab('score')">⛳ Hole</button>
                 <button class="tab" id="tab-leaderboard" onclick="switchTab('leaderboard')">🏆 Scores</button>
                 <button class="tab" id="tab-penalties" onclick="switchTab('penalties')">⚙️ Adjustments</button>
+                <button class="tab" id="tab-missions" onclick="switchTab('missions')" style="display:none;">🎯 Missions</button>
                 <button class="tab" id="tab-teams" onclick="switchTab('teams')" style="display:none;">👥 Teams</button>
             </div>
             <div id="game-tab-score">
@@ -1882,6 +1883,9 @@
                         cannot be undone.</p>
                     <div id="org-teams-manage"></div>
                 </div>
+            </div>
+            <div id="game-tab-missions" style="display:none;">
+                <div id="game-missions-content"></div>
             </div>
         </div>
         <!-- GAME OVER SCREEN -->
