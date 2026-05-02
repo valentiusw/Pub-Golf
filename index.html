@@ -3005,7 +3005,7 @@
         // TAB SWITCHING
         // ============================================================
         function switchTab(tab) {
-            ['score', 'leaderboard', 'penalties', 'teams'].forEach(t => {
+            ['score', 'leaderboard', 'penalties', 'teams', 'missions'].forEach(t => {
                 document.getElementById('game-tab-' + t).style.display = (t === tab) ? 'block' : 'none';
                 const btn = document.getElementById('tab-' + t);
                 if (btn) btn.classList.toggle('active', t === tab);
@@ -3013,6 +3013,12 @@
             if (tab === 'leaderboard') { renderLeaderboard(); renderCourseProgress(); }
             if (tab === 'penalties') renderPenaltiesTab();
             if (tab === 'teams') renderTeamsManage();
+            if (tab === 'missions') renderMissionsTab();
+            // Show missions tab only if enabled and player in team
+            const missionsTab = document.getElementById('tab-missions');
+            if (missionsTab) {
+                missionsTab.style.display = (state.secretMissionsEnabled && local.myTeamName) ? '' : 'none';
+            }
         }
 
         function changeHole(delta) {
