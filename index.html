@@ -2980,7 +2980,7 @@
                 localStorage.removeItem('pgSession');
                 sessionStorage.removeItem('pgSession');
                 local = { lobbyCode: null, isOrganiser: false, myTeamName: '', currentHoleIndex: 0 };
-                state = { gameName: '', gameStarted: false, teams: [], holes: [], scores: {}, penalties: [], penaltyLog: [], rewards: [], rewardLog: [] };
+                state = { gameName: '', gameStarted: false, teams: [], holes: [], scores: {}, penalties: [], penaltyLog: [], rewards: [], rewardLog: [], secretMissionsEnabled: false, missions: {} };
                 createDraft = { members: [] }; joinDraft = { members: [] };
                 renderDraftMembers('create'); renderDraftMembers('join');
                 updateHoleBg();
@@ -3622,7 +3622,9 @@
                 penalties: [],
                 penaltyLog: [],
                 rewards: [],
-                rewardLog: []
+                rewardLog: [],
+                secretMissionsEnabled: false,
+                missions: {}
             };
             localStorage.removeItem('pgSession');
             sessionStorage.removeItem('pgSession');
